@@ -967,50 +967,97 @@ const Speech = {
     }
   },
 
-  play(blind){
+  play(){
     if (!CURRENT) return;
-    this.blindMode = !!blind;
-    this.applyBlur();
-    this.updateActiveBtn();
     if (this.state === "paused"){
+      this._pausedAt = 0;
       speechSynthesis.resume();
       this.state = "playing";
+      this.updateActiveBtn();
       return;
     }
-    if (this.state === "playing") return; // 已在播放，仅切换盲听
+    if (this.state === "playing") return;
     speechSynthesis.cancel();
     this.chunks = this.prepareChunks(CURRENT.passage.body.join(" "));
     this.cursor = 0;
     this.playedChars = 0;
     this.currentCharIndex = 0;
     this.state = "playing";
+    this._cpsObserved = null;
     this.updateProgress();
+    this.updateActiveBtn();
     this.speakNext();
+  },
+
+  toggleBlind(){
+    this.blindMode = !this.blindMode;
+    this.applyBlur();
+    this.updateActiveBtn();
   },
 
   speakNext(){
     if (this.cursor >= this.chunks.length){ this.finish(); return; }
-    const u = new SpeechSynthesisUtterance(this.chunks[this.cursor]);
+    const chunk = this.chunks[this.cursor];
+    const u = new SpeechSynthesisUtterance(chunk);
     if (this.voice){ u.voice = this.voice; u.lang = this.voice.lang; }
     u.rate = this.rate; u.pitch = 1; u.volume = 1;
-    u.onboundary = (e)=>{
-      if (this.state !== "playing") return;
-      if (typeof e.charIndex === "number"){
-        this.currentCharIndex = e.charIndex;
-        this.updateProgress();
+
+    // 时间插值 + onboundary 校准：即便语音引擎不发 boundary 事件也能平滑推进
+    const startTime = performance.now();
+    let lastBoundaryChar = 0;
+    let lastBoundaryTime = startTime;
+    let pausedAt = 0;
+
+    if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
+    this._tickId = setInterval(()=>{
+      const now = performance.now();
+      if (this.state === "paused"){
+        if (pausedAt === 0) pausedAt = now;
+        return;
       }
+      if (this.state !== "playing"){ return; }
+      if (pausedAt > 0){
+        // 刚恢复：把暂停时长加到基准上，避免估算跳跃
+        const pauseDur = now - pausedAt;
+        lastBoundaryTime += pauseDur;
+        pausedAt = 0;
+      }
+      const cps = this._cpsObserved || (12.5 * (this.rate || 1));
+      const elapsedFromAnchor = (now - lastBoundaryTime) / 1000;
+      const est = lastBoundaryChar + elapsedFromAnchor * cps;
+      this.currentCharIndex = Math.min(chunk.length, est);
+      this.updateProgress();
+    }, 100);
+
+    u.onboundary = (e)=>{
+      if (typeof e.charIndex !== "number") return;
+      const now = performance.now();
+      if (e.charIndex > lastBoundaryChar && now > lastBoundaryTime){
+        const dCps = (e.charIndex - lastBoundaryChar) / ((now - lastBoundaryTime)/1000);
+        if (dCps > 1 && dCps < 60){
+          this._cpsObserved = this._cpsObserved
+            ? this._cpsObserved * 0.6 + dCps * 0.4
+            : dCps;
+        }
+      }
+      lastBoundaryChar = e.charIndex;
+      lastBoundaryTime = now;
+      this.currentCharIndex = e.charIndex;
+      this.updateProgress();
     };
     u.onend = ()=>{
+      if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
       if (this.state !== "playing") return;
-      this.playedChars += this.chunks[this.cursor].length;
+      this.playedChars += chunk.length;
       this.currentCharIndex = 0;
       this.cursor++;
       this.updateProgress();
       this.speakNext();
     };
     u.onerror = ()=>{
+      if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
       if (this.state === "playing"){
-        this.playedChars += this.chunks[this.cursor].length;
+        this.playedChars += chunk.length;
         this.cursor++;
         this.speakNext();
       }
@@ -1020,6 +1067,7 @@ const Speech = {
 
   pause(){
     if (this.state === "playing"){
+      this._pausedAt = performance.now();
       speechSynthesis.pause();
       this.state = "paused";
       this.updateActiveBtn();
@@ -1027,6 +1075,7 @@ const Speech = {
   },
 
   stop(){
+    if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
     speechSynthesis.cancel();
     this.state = "idle";
     this.cursor = 0;
@@ -1034,13 +1083,14 @@ const Speech = {
     this.currentCharIndex = 0;
     this.chunks = [];
     this.totalChars = 0;
-    this.blindMode = false;
-    this.removeBlur();
+    this._cpsObserved = null;
+    // 不清 blindMode：保留用户的模糊偏好
     this.updateActiveBtn();
     this.updateProgress();
   },
 
   restartFromCurrent(){
+    if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
     speechSynthesis.cancel();
     setTimeout(()=>{
       if (this.state === "playing") this.speakNext();
@@ -1048,11 +1098,11 @@ const Speech = {
   },
 
   finish(){
+    if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
     this.state = "idle";
     this.playedChars = this.totalChars;
     this.currentCharIndex = 0;
     this.updateProgress();
-    this.removeBlur();
     this.updateActiveBtn();
   },
 
@@ -1074,9 +1124,9 @@ const Speech = {
     this.updateProgress();
     if (this.state === "idle"){
       this.state = "playing";
-      this.applyBlur();
       this.updateActiveBtn();
     }
+    if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
     speechSynthesis.cancel();
     setTimeout(()=>{ if (this.state === "playing") this.speakNext(); }, 80);
   },
@@ -1086,8 +1136,7 @@ const Speech = {
     const done  = this.playedChars + this.currentCharIndex;
     const pct = total ? Math.min(100, (done/total)*100) : 0;
     const bar = $("#audioBarFill"); if (bar) bar.style.width = pct + "%";
-    // 估时：约 12.5 chars/sec at rate 1.0
-    const cps = 12.5 * (this.rate || 1);
+    const cps = this._cpsObserved || (12.5 * (this.rate || 1));
     const totalSec = total / cps;
     const doneSec  = done  / cps;
     const t = $("#audioTime");
@@ -1096,8 +1145,8 @@ const Speech = {
 
   updateActiveBtn(){
     const playing = this.state === "playing";
-    $("#btnPlay").classList.toggle("active",  playing && !this.blindMode);
-    $("#btnBlind").classList.toggle("active", playing &&  this.blindMode);
+    $("#btnPlay").classList.toggle("active",  playing);
+    $("#btnBlind").classList.toggle("active", this.blindMode);
   },
 
   applyBlur(){
@@ -1242,8 +1291,8 @@ window.addEventListener("DOMContentLoaded", ()=>{
 
   document.addEventListener("input", e=>{ if (e.target.classList?.contains("blank")) saveToday(); });
 
-  $("#btnPlay").addEventListener("click", ()=>Speech.play(false));
-  $("#btnBlind").addEventListener("click", ()=>Speech.play(true));
+  $("#btnPlay").addEventListener("click", ()=>Speech.play());
+  $("#btnBlind").addEventListener("click", ()=>Speech.toggleBlind());
   $("#btnPause").addEventListener("click", ()=>Speech.pause());
   $("#btnStop").addEventListener("click", ()=>Speech.stop());
   $("#audioBar").addEventListener("click", e=>{
