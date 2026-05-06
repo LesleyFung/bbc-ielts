@@ -175,6 +175,33 @@
   .player .toggle{ font-size:13px; color: var(--ink-3); display: inline-flex; align-items:center; gap:6px; cursor:pointer; user-select:none; }
   .player .toggle input{ accent-color: var(--accent); }
 
+  /* Audio progress */
+  .progressRow{
+    display:flex; align-items:center; gap: 12px;
+    width: 100%; margin-top: 4px;
+  }
+  .audioBar{
+    flex: 1; height: 4px; border-radius: 999px;
+    background: rgba(0,0,0,0.10); overflow: hidden;
+    cursor: pointer; position: relative;
+    transition: height .15s ease;
+  }
+  .audioBar:hover{ height: 6px; }
+  .audioBar > i{
+    display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--accent), #5ac8fa);
+    border-radius: 999px;
+    transition: width .12s linear;
+  }
+  .audioTime{
+    font-size: 12px; color: var(--ink-3);
+    font-feature-settings: "tnum";
+    min-width: 78px; text-align: right;
+    letter-spacing: -0.01em;
+  }
+  .icon-btn.active{ background: var(--accent); color: #fff; }
+  .icon-btn.active:hover{ background: var(--accent-hover); }
+
   /* Passage */
   .passage{
     font-size: 18px; line-height: 1.85; color: var(--ink);
@@ -406,8 +433,11 @@
 
       <div class="player">
         <div class="group">
-          <button id="btnPlay" class="icon-btn primary" title="播放">
+          <button id="btnPlay" class="icon-btn primary" title="正常播放（显示文本）">
             <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2.5v11l10-5.5z"/></svg>
+          </button>
+          <button id="btnBlind" class="icon-btn" title="盲听播放（隐藏文本）">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8c1.6-2.6 4-4.5 6-4.5S12.4 5.4 14 8c-1.6 2.6-4 4.5-6 4.5S3.6 10.6 2 8z"/><circle cx="8" cy="8" r="2.1" fill="currentColor" stroke="none"/><line x1="2.6" y1="2.6" x2="13.4" y2="13.4"/></svg>
           </button>
           <button id="btnPause" class="icon-btn" title="暂停">
             <svg viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="3" width="2.6" height="10" rx="0.6"/><rect x="9.4" y="3" width="2.6" height="10" rx="0.6"/></svg>
@@ -430,7 +460,10 @@
           <select id="voiceSel" title="选择朗读语音"></select>
         </label>
 
-        <label class="toggle"><input id="autohide" type="checkbox" checked />盲听模糊</label>
+        <div class="progressRow">
+          <div class="audioBar" id="audioBar" title="点击跳转"><i id="audioBarFill"></i></div>
+          <span class="audioTime" id="audioTime">0:00 / 0:00</span>
+        </div>
       </div>
 
       <div id="passage" class="passage"></div>
@@ -848,15 +881,19 @@ function loadPassage(passage){
 const Speech = {
   voices: [],
   chunks: [],
-  cursor: 0,        // 当前朗读到第几块
-  state: "idle",    // idle | playing | paused
+  cursor: 0,
+  state: "idle",            // idle | playing | paused
   rate: 0.95,
   voice: null,
-  blurOn: false,
+  blindMode: false,
+  totalChars: 0,
+  playedChars: 0,           // 已完成块的字符数
+  currentCharIndex: 0,      // 当前块内的字符位置
 
   init(){
     if (!("speechSynthesis" in window)){
       $("#btnPlay").disabled = true;
+      $("#btnBlind").disabled = true;
       $("#voiceSel").disabled = true;
       toast("当前浏览器不支持朗读");
       return;
@@ -867,6 +904,7 @@ const Speech = {
     };
     load();
     speechSynthesis.onvoiceschanged = load;
+    this.updateProgress();
   },
 
   populateVoiceList(){
@@ -875,7 +913,6 @@ const Speech = {
       sel.innerHTML = `<option>加载中…</option>`;
       return;
     }
-    // 排序：Google 优先（跨设备一致），en-GB 优先，本地优先
     const score = v => {
       let s = 0;
       if (/^Google/i.test(v.name)) s += 100;
@@ -888,7 +925,6 @@ const Speech = {
     sel.innerHTML = sorted.map(v =>
       `<option value="${v.voiceURI}">${v.name} · ${v.lang}${v.localService?"":" · 在线"}</option>`
     ).join("");
-
     const savedURI = LS.get(KEY_VOICE, null);
     let chosen = savedURI && sorted.find(v=>v.voiceURI===savedURI);
     if (!chosen) chosen = sorted[0];
@@ -908,11 +944,11 @@ const Speech = {
   setRate(r){
     this.rate = r;
     LS.set(KEY_RATE, r);
+    this.updateProgress(); // 重估时长
     if (this.state === "playing") this.restartFromCurrent();
   },
 
   prepareChunks(text){
-    // 按句号/问号/感叹号切分，每块不超过 ~180 字符
     const sentences = text.match(/[^.!?]+[.!?]+["']?\s*/g) || [text];
     const chunks = [];
     let buf = "";
@@ -921,22 +957,34 @@ const Speech = {
       else buf += s;
     }
     if (buf.trim()) chunks.push(buf.trim());
+    this.totalChars = chunks.reduce((s,c)=>s+c.length, 0);
     return chunks;
   },
 
-  play(){
+  ensureChunks(){
+    if (!this.chunks.length && CURRENT){
+      this.chunks = this.prepareChunks(CURRENT.passage.body.join(" "));
+    }
+  },
+
+  play(blind){
     if (!CURRENT) return;
+    this.blindMode = !!blind;
+    this.applyBlur();
+    this.updateActiveBtn();
     if (this.state === "paused"){
       speechSynthesis.resume();
       this.state = "playing";
-      this.applyBlur();
       return;
     }
+    if (this.state === "playing") return; // 已在播放，仅切换盲听
     speechSynthesis.cancel();
     this.chunks = this.prepareChunks(CURRENT.passage.body.join(" "));
     this.cursor = 0;
+    this.playedChars = 0;
+    this.currentCharIndex = 0;
     this.state = "playing";
-    this.applyBlur();
+    this.updateProgress();
     this.speakNext();
   },
 
@@ -945,14 +993,27 @@ const Speech = {
     const u = new SpeechSynthesisUtterance(this.chunks[this.cursor]);
     if (this.voice){ u.voice = this.voice; u.lang = this.voice.lang; }
     u.rate = this.rate; u.pitch = 1; u.volume = 1;
+    u.onboundary = (e)=>{
+      if (this.state !== "playing") return;
+      if (typeof e.charIndex === "number"){
+        this.currentCharIndex = e.charIndex;
+        this.updateProgress();
+      }
+    };
     u.onend = ()=>{
       if (this.state !== "playing") return;
+      this.playedChars += this.chunks[this.cursor].length;
+      this.currentCharIndex = 0;
       this.cursor++;
+      this.updateProgress();
       this.speakNext();
     };
-    u.onerror = (e)=>{
-      // Safari 偶发 interrupted；忽略并继续
-      if (this.state === "playing"){ this.cursor++; this.speakNext(); }
+    u.onerror = ()=>{
+      if (this.state === "playing"){
+        this.playedChars += this.chunks[this.cursor].length;
+        this.cursor++;
+        this.speakNext();
+      }
     };
     speechSynthesis.speak(u);
   },
@@ -961,6 +1022,7 @@ const Speech = {
     if (this.state === "playing"){
       speechSynthesis.pause();
       this.state = "paused";
+      this.updateActiveBtn();
     }
   },
 
@@ -968,11 +1030,17 @@ const Speech = {
     speechSynthesis.cancel();
     this.state = "idle";
     this.cursor = 0;
+    this.playedChars = 0;
+    this.currentCharIndex = 0;
+    this.chunks = [];
+    this.totalChars = 0;
+    this.blindMode = false;
     this.removeBlur();
+    this.updateActiveBtn();
+    this.updateProgress();
   },
 
   restartFromCurrent(){
-    // 保留 cursor，但要先 cancel 当前 utterance；等 cancel 完成后再播
     speechSynthesis.cancel();
     setTimeout(()=>{
       if (this.state === "playing") this.speakNext();
@@ -981,22 +1049,77 @@ const Speech = {
 
   finish(){
     this.state = "idle";
+    this.playedChars = this.totalChars;
+    this.currentCharIndex = 0;
+    this.updateProgress();
     this.removeBlur();
+    this.updateActiveBtn();
+  },
+
+  seek(fraction){
+    if (!CURRENT) return;
+    this.ensureChunks();
+    if (!this.totalChars) return;
+    const target = fraction * this.totalChars;
+    let cum = 0, idx = 0;
+    for (let i=0; i<this.chunks.length; i++){
+      if (cum + this.chunks[i].length >= target){ idx = i; break; }
+      cum += this.chunks[i].length;
+      idx = i + 1;
+    }
+    if (idx >= this.chunks.length) idx = this.chunks.length - 1;
+    this.cursor = idx;
+    this.playedChars = this.chunks.slice(0, idx).reduce((s,c)=>s+c.length, 0);
+    this.currentCharIndex = 0;
+    this.updateProgress();
+    if (this.state === "idle"){
+      this.state = "playing";
+      this.applyBlur();
+      this.updateActiveBtn();
+    }
+    speechSynthesis.cancel();
+    setTimeout(()=>{ if (this.state === "playing") this.speakNext(); }, 80);
+  },
+
+  updateProgress(){
+    const total = this.totalChars;
+    const done  = this.playedChars + this.currentCharIndex;
+    const pct = total ? Math.min(100, (done/total)*100) : 0;
+    const bar = $("#audioBarFill"); if (bar) bar.style.width = pct + "%";
+    // 估时：约 12.5 chars/sec at rate 1.0
+    const cps = 12.5 * (this.rate || 1);
+    const totalSec = total / cps;
+    const doneSec  = done  / cps;
+    const t = $("#audioTime");
+    if (t) t.textContent = `${fmtTime(doneSec)} / ${fmtTime(totalSec)}`;
+  },
+
+  updateActiveBtn(){
+    const playing = this.state === "playing";
+    $("#btnPlay").classList.toggle("active",  playing && !this.blindMode);
+    $("#btnBlind").classList.toggle("active", playing &&  this.blindMode);
   },
 
   applyBlur(){
-    if ($("#autohide").checked){
+    if (this.blindMode){
       $("#passage").style.filter = "blur(6px)";
       $("#passage").style.userSelect = "none";
-      this.blurOn = true;
+    } else {
+      $("#passage").style.filter = "";
+      $("#passage").style.userSelect = "";
     }
   },
   removeBlur(){
     $("#passage").style.filter = "";
     $("#passage").style.userSelect = "";
-    this.blurOn = false;
   }
 };
+
+function fmtTime(s){
+  s = Math.max(0, Math.round(s||0));
+  const m = Math.floor(s/60), sec = s%60;
+  return `${m}:${String(sec).padStart(2,"0")}`;
+}
 
 function stopSpeak(){ Speech.stop(); }
 
@@ -1119,9 +1242,15 @@ window.addEventListener("DOMContentLoaded", ()=>{
 
   document.addEventListener("input", e=>{ if (e.target.classList?.contains("blank")) saveToday(); });
 
-  $("#btnPlay").addEventListener("click", ()=>Speech.play());
+  $("#btnPlay").addEventListener("click", ()=>Speech.play(false));
+  $("#btnBlind").addEventListener("click", ()=>Speech.play(true));
   $("#btnPause").addEventListener("click", ()=>Speech.pause());
   $("#btnStop").addEventListener("click", ()=>Speech.stop());
+  $("#audioBar").addEventListener("click", e=>{
+    const r = e.currentTarget.getBoundingClientRect();
+    const f = (e.clientX - r.left) / r.width;
+    Speech.seek(Math.max(0, Math.min(1, f)));
+  });
   $("#rate").addEventListener("input", ()=>{
     const v = +$("#rate").value;
     $("#rateVal").textContent = v.toFixed(2)+"×";
