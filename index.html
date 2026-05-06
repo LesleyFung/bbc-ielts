@@ -493,8 +493,10 @@
         <details>
           <summary>评分对照（雅思 Listening / Reading 大致换算）</summary>
           <div class="body">
-            10 → 9.0 · 9 → 8.5 · 8 → 7.5 · 7 → 7.0 · 6 → 6.5 · 5 → 6.0 · 4 → 5.5 · 3 → 5.0 · ≤2 → 4.5。
-            采用近似映射，仅供参考；拼写错按错，大小写忽略，复数 / 时态严格。
+            映射依据 IELTS Listening 官方原始分→band 换算表（按答对百分比）：
+            ≥97.5% → 9.0 · ≥92.5% → 8.5 · ≥87.5% → 8.0 · ≥80% → 7.5 · ≥75% → 7.0 ·
+            ≥65% → 6.5 · ≥57.5% → 6.0 · ≥45% → 5.5 · ≥40% → 5.0 · ≥32.5% → 4.5 · 其余 → 4.0。
+            拼写错按错，大小写忽略，复数 / 时态严格。
           </div>
         </details>
       </div>
@@ -820,10 +822,18 @@ function grade(restore){
   } else { refreshErrCount(); }
 }
 function mapBand(s){
-  if (s>=9.5) return "9.0"; if (s>=8.5) return "8.5"; if (s>=7.5) return "8.0";
-  if (s>=6.5) return "7.5"; if (s>=5.5) return "7.0"; if (s>=4.5) return "6.5";
-  if (s>=3.5) return "6.0"; if (s>=2.5) return "5.5"; if (s>=1.5) return "5.0";
-  return "4.5";
+  // 对照 IELTS Listening 官方原始分→band 换算表（按答对百分比）
+  if (s>=9.75) return "9.0";  // ≥97.5%
+  if (s>=9.25) return "8.5";  // ≥92.5%
+  if (s>=8.75) return "8.0";  // ≥87.5%
+  if (s>=8.0)  return "7.5";  // ≥80%
+  if (s>=7.5)  return "7.0";  // ≥75%
+  if (s>=6.5)  return "6.5";  // ≥65%
+  if (s>=5.75) return "6.0";  // ≥57.5%
+  if (s>=4.5)  return "5.5";  // ≥45%
+  if (s>=4.0)  return "5.0";  // ≥40%
+  if (s>=3.25) return "4.5";  // ≥32.5%
+  return "4.0";
 }
 function makeContext(passage, blank){
   const para = passage.body[blank.pIdx];
