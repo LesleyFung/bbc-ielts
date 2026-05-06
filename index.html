@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>每日 BBC 雅思填空</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel-2:#1f232d;
+    --ink:#e8ecf1; --ink-dim:#9aa3b2; --ink-faint:#5b6371;
+    --accent:#7cc4ff; --accent-2:#a6e3a1; --warn:#f5a97f; --bad:#f38ba8; --good:#a6e3a1;
+    --line:#2a2f3a; --gap:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Helvetica Neue",sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  h1{font-size:20px;margin:0;letter-spacing:.2px}
+  .sub{color:var(--ink-dim);font-size:13px}
+  .tabs{display:flex;gap:6px}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+       padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+  .tab.active{background:var(--panel-2);color:var(--ink);border-color:#3a4252}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:var(--gap)}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:var(--ink-dim);font-size:13px;margin-bottom:6px}
+  .meta .pill{background:var(--panel-2);border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px}
+  h2.title{margin:6px 0 10px;font-size:18px;line-height:1.4}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
+  button{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);
+         padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+  button:hover{border-color:#475063}
+  button.primary{background:#1f3a5b;border-color:#2a4f7a;color:#dbeaff}
+  button.primary:hover{background:#26456b}
+  button.danger{background:#3b1f25;border-color:#6b2f3a;color:#ffd6dd}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .passage{font-size:17px;line-height:1.95;letter-spacing:.1px}
+  .passage p{margin:0 0 12px}
+  .blank{display:inline-block;min-width:7em;border:none;border-bottom:1.6px solid var(--ink-faint);
+         background:transparent;color:var(--ink);font:inherit;padding:0 4px;margin:0 1px;
+         text-align:center;outline:none;transition:border-color .15s ease}
+  .blank:focus{border-bottom-color:var(--accent)}
+  .blank.ok{border-bottom-color:var(--good);color:var(--good)}
+  .blank.bad{border-bottom-color:var(--bad);color:var(--bad);text-decoration:line-through}
+  .blank.bad + .answer{color:var(--good);margin-left:4px;font-size:.9em}
+  .answer{display:inline-block;color:var(--good)}
+  .scoreBox{display:flex;flex-wrap:wrap;align-items:center;gap:18px}
+  .bigScore{font-size:34px;font-weight:600;letter-spacing:.5px}
+  .bigScore .unit{font-size:14px;color:var(--ink-dim);margin-left:6px}
+  .band{font-size:14px;color:var(--ink-dim)}
+  .progress{height:8px;background:var(--panel-2);border-radius:99px;overflow:hidden;flex:1;min-width:160px}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0;transition:width .6s ease}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .speed{display:flex;align-items:center;gap:8px;color:var(--ink-dim);font-size:13px}
+  input[type=range]{accent-color:var(--accent)}
+  .errList{display:flex;flex-direction:column;gap:8px}
+  .errItem{display:grid;grid-template-columns:1fr auto;gap:8px;background:var(--panel-2);
+           border:1px solid var(--line);padding:10px 12px;border-radius:10px;font-size:14px}
+  .errItem .ctx{color:var(--ink-dim);font-size:12.5px;margin-top:3px;line-height:1.55}
+  .errItem .ctx b{color:var(--good);font-weight:600}
+  .errItem .ctx s{color:var(--bad)}
+  .empty{color:var(--ink-faint);text-align:center;padding:30px 10px;font-size:14px}
+  .hint{color:var(--ink-dim);font-size:13px;margin-top:8px}
+  .switch{display:inline-flex;align-items:center;gap:6px;color:var(--ink-dim);font-size:13px;cursor:pointer;user-select:none}
+  .hidden{display:none !important}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+         background:#222831;border:1px solid var(--line);padding:10px 16px;border-radius:10px;font-size:13px;
+         opacity:0;transition:opacity .25s ease;pointer-events:none;z-index:99}
+  .toast.show{opacity:1}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+  .stats .s{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .stats .s b{display:block;font-size:18px;color:var(--ink)}
+  .stats .s span{font-size:12px;color:var(--ink-dim)}
+  details summary{cursor:pointer;color:var(--ink-dim);font-size:13px;margin-top:8px}
+  details[open] summary{color:var(--ink)}
+  .src{font-size:12px;color:var(--ink-faint)}
+  @media(max-width:520px){
+    .passage{font-size:16px}
+    .blank{min-width:5.5em}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>每日 BBC 雅思填空</h1>
+      <div class="sub" id="subTitle">每天一篇 · 边听边填 · 自动批改</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="today">今日</button>
+      <button class="tab" data-tab="errs">错题本 <span id="errCount"></span></button>
+      <button class="tab" data-tab="hist">历史</button>
+    </div>
+  </header>
+
+  <!-- TODAY -->
+  <section id="tabToday">
+    <div class="card">
+      <div class="meta">
+        <span class="pill" id="dateLabel"></span>
+        <span class="pill" id="srcLabel">BBC 风格 · 内置</span>
+        <span id="diffLabel" class="src"></span>
+      </div>
+      <h2 class="title" id="title"></h2>
+
+      <div class="toolbar">
+        <button id="btnPlay" class="primary">▶ 播放</button>
+        <button id="btnPause">⏸ 暂停</button>
+        <button id="btnStop">■ 停止</button>
+        <label class="speed">语速
+          <input id="rate" type="range" min="0.6" max="1.4" step="0.05" value="0.95" />
+          <span id="rateVal">0.95×</span>
+        </label>
+        <label class="switch"><input id="autohide" type="checkbox" checked />听完前隐藏文本</label>
+      </div>
+
+      <div id="passage" class="passage"></div>
+
+      <div class="toolbar" style="margin-top:18px">
+        <button id="btnSubmit" class="primary">提交批改</button>
+        <button id="btnReveal">显示答案</button>
+        <button id="btnNext">换一篇</button>
+        <button id="btnFetch" title="尝试通过 CORS 代理抓取 BBC News RSS">🌐 抓取 BBC 最新</button>
+        <button id="btnReset">重置本篇</button>
+      </div>
+      <div class="hint" id="hint">提示：先点播放听一遍，再回到文本填空。雅思考试中此类题型多考察拼写、词形、搭配。</div>
+
+      <div id="resultCard" class="card hidden" style="margin-top:14px;background:var(--panel-2)">
+        <div class="scoreBox">
+          <div>
+            <div class="bigScore"><span id="score10">0.0</span><span class="unit">/ 10</span></div>
+            <div class="band" id="bandText"></div>
+          </div>
+          <div class="progress"><i id="progBar"></i></div>
+        </div>
+        <div class="stats">
+          <div class="s"><b id="stCorrect">0</b><span>正确</span></div>
+          <div class="s"><b id="stWrong">0</b><span>错误</span></div>
+          <div class="s"><b id="stTotal">0</b><span>总空</span></div>
+        </div>
+        <details><summary>评分对照（雅思 Listening / Reading 大致换算）</summary>
+          <div class="src" style="margin-top:6px">
+            10 → 9.0 · 9 → 8.5 · 8 → 7.5 · 7 → 7.0 · 6 → 6.5 · 5 → 6.0 · 4 → 5.5 · 3 → 5.0 · ≤2 → 4.5。
+            采用近似映射，仅供参考；拼写错按错，大小写忽略，复数 / 时态严格。
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ERRORS -->
+  <section id="tabErrs" class="hidden">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><b>错题本</b><span class="src" id="errMeta" style="margin-left:10px"></span></div>
+        <div class="row">
+          <button id="btnExport">导出</button>
+          <button id="btnResetErrs" class="danger">重置错题本</button>
+        </div>
+      </div>
+      <div id="errList" class="errList" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="tabHist" class="hidden">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <b>历史成绩</b>
+        <button id="btnResetHist" class="danger">清空历史</button>
+      </div>
+      <div id="histList" class="errList" style="margin-top:12px"></div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ===========================================================
+   每日 BBC 雅思填空 - 单文件应用
+   - 内置 BBC 风格新闻语料（按日期轮换，含 IELTS 词汇标注）
+   - 提交批改 + 10 分制 + 雅思 band 近似映射
+   - 错题本 / 历史记录 全部 localStorage，可一键重置
+   - 音频：Web Speech API（英式优先，可调速）
+   - 可选：通过公共 CORS 代理抓取 BBC News RSS
+   =========================================================== */
+
+/* ---------------------- 内置语料 ----------------------
+   每篇文章字段：
+     id, title, date, source, level, body
+   body 为段落数组。挖空算法会自动从 body 文本中挑选 IELTS 风格关键词，
+   也可以在 forcedBlanks 中显式指定（小写词形）以保证某些核心词必挖。
+*/
+const PASSAGES = [
+  {
+    id: "uk-rail-investment",
+    title: "UK announces £20bn rail investment to ease northern bottlenecks",
+    source: "BBC 风格 · Business",
+    level: "IELTS 6.5–7.5",
+    forcedBlanks: ["investment","bottlenecks","commuters","upgrade","emissions","capacity","decade","passengers"],
+    body: [
+      "The British government has unveiled a twenty-billion-pound investment programme aimed at easing the chronic bottlenecks that frustrate commuters across the north of England. Officials say the funding will be released over the next decade and will deliver the most ambitious upgrade of regional rail in a generation.",
+      "Under the proposals, several Victorian-era tunnels will be widened, signalling systems modernised, and additional capacity introduced on routes linking Manchester, Leeds and Newcastle. Ministers argue the scheme will benefit roughly two million passengers each week and cut journey times by up to forty percent.",
+      "Critics, however, have warned that the headline figure conceals significant uncertainty. Independent analysts note that previous infrastructure pledges in the region were repeatedly scaled back, and they question whether construction can begin before the next general election. Environmental groups also remain sceptical, arguing that the plan does not go far enough in reducing transport emissions.",
+      "The Treasury insists the package represents value for money and is consistent with broader plans to rebalance regional growth. A formal consultation is expected to open within weeks."
+    ]
+  },
+  {
+    id: "ai-energy-demand",
+    title: "Soaring energy demand from AI data centres reshapes power grids",
+    source: "BBC 风格 · Technology",
+    level: "IELTS 7.0–8.0",
+    forcedBlanks: ["consumption","infrastructure","unprecedented","regulators","sustainable","capacity","forecast","reliable"],
+    body: [
+      "Electricity consumption from data centres handling artificial intelligence workloads is rising at an unprecedented pace, prompting regulators in Europe and North America to rethink long-standing assumptions about grid infrastructure. According to the International Energy Agency, demand from such facilities could double within three years.",
+      "Operators such as Microsoft and Google have signed long-term contracts with nuclear and renewable suppliers, while smaller firms struggle to secure reliable capacity. Analysts forecast that, without coordinated planning, household electricity prices in some regions could rise noticeably by the end of the decade.",
+      "Researchers at Imperial College London argue that algorithmic efficiency improvements have so far failed to offset the surge in usage. They call for transparent reporting of energy figures and for governments to require that new training facilities be paired with sustainable generation.",
+      "Industry voices counter that AI itself can help optimise grid performance, predicting demand and balancing intermittent renewable supply. The debate is likely to dominate energy policy for years to come."
+    ]
+  },
+  {
+    id: "antarctic-ice",
+    title: "Scientists report a record retreat of Antarctic sea ice",
+    source: "BBC 风格 · Climate",
+    level: "IELTS 7.0–8.0",
+    forcedBlanks: ["satellite","retreat","ecosystem","measurements","atmosphere","threshold","circulation","glaciers"],
+    body: [
+      "A team of polar scientists has reported the largest summer retreat of Antarctic sea ice ever recorded by satellite, raising concerns that the region may have crossed a critical threshold. The measurements, published in a peer-reviewed journal, show ice coverage roughly two million square kilometres below the long-term average.",
+      "Lead author Dr Emily Hartwell said the loss could not be explained by natural variability alone, and that warming in both the ocean and the atmosphere appeared to be reinforcing one another. Reduced ice exposes darker water, which absorbs more heat and accelerates further melting.",
+      "The implications extend well beyond the polar ecosystem. Sea ice helps stabilise the great glaciers of West Antarctica, whose collapse would contribute substantially to global sea-level rise. It also influences ocean circulation patterns that distribute heat around the planet.",
+      "Funding for sustained monitoring, however, remains uncertain. Several research vessels are due to be retired within the next two years, and replacements have yet to be commissioned."
+    ]
+  },
+  {
+    id: "remote-work",
+    title: "Five years on, remote work has quietly redrawn the British high street",
+    source: "BBC 风格 · Society",
+    level: "IELTS 6.5–7.5",
+    forcedBlanks: ["pandemic","commuters","independent","footfall","landlords","subsidies","resilience","decline"],
+    body: [
+      "Five years after the pandemic accelerated the shift to working from home, the British high street has changed in ways that few economists fully predicted. Footfall in major financial districts on Mondays and Fridays remains roughly twenty percent below pre-pandemic levels, while many suburban centres are quietly thriving.",
+      "Independent cafés, bakeries and bookshops have opened in commuter towns where premises were once dominated by chain retailers. Local councils report that, although overall vacancy rates remain high, the character of vacant units has shifted, with smaller spaces in residential neighbourhoods filling rapidly.",
+      "Commercial landlords face a more difficult adjustment. Long leases signed before the pandemic continue to bind tenants to expensive city-centre offices, and several listed property funds have suspended withdrawals as valuations fall.",
+      "The government has resisted calls for direct subsidies, arguing that the market is correcting itself. Yet small-business owners point out that resilience cannot be assumed without targeted support, particularly as energy costs and business rates remain elevated."
+    ]
+  },
+  {
+    id: "japan-population",
+    title: "Japan rolls out new family policies as population decline accelerates",
+    source: "BBC 风格 · World",
+    level: "IELTS 6.5–7.5",
+    forcedBlanks: ["demographic","incentives","childcare","workforce","reluctant","municipalities","policies","decline"],
+    body: [
+      "Japan has unveiled its most ambitious package of family-support policies in two decades, in response to a sharper-than-expected demographic decline. The proposals include expanded childcare subsidies, longer paternity leave and incentives for companies that allow flexible working hours.",
+      "Government data released last week showed the number of births falling below seven hundred thousand for the first time, a figure that has alarmed economists. With the workforce shrinking, ministers warn that public services and pension commitments will become increasingly difficult to sustain.",
+      "Local municipalities have already experimented with their own measures, from cash payments for newborns to free school meals. Yet many young couples remain reluctant to start families, citing job insecurity, expensive housing and long working hours.",
+      "Analysts say the new measures are a step in the right direction but unlikely to reverse the trend on their own. Cultural attitudes toward marriage and gender roles, they argue, are evolving slowly and cannot be legislated overnight."
+    ]
+  },
+  {
+    id: "ev-battery-recycling",
+    title: "Europe races to build a battery recycling industry from scratch",
+    source: "BBC 风格 · Business",
+    level: "IELTS 7.0–8.0",
+    forcedBlanks: ["recycling","strategic","extraction","components","regulation","incentives","domestic","ambitious"],
+    body: [
+      "European policymakers are pushing to establish a domestic battery recycling industry, hoping to reduce dependence on imported critical minerals. The European Commission has set ambitious targets requiring recovered materials to make up a growing share of new battery production by the early 2030s.",
+      "At present, fewer than five percent of lithium-ion batteries reaching end of life in Europe are processed within the bloc. Most are shipped to East Asia, where extraction and refining capacity is concentrated. Officials describe this dependence as a strategic vulnerability.",
+      "A new generation of plants in France, Germany and Sweden is now under construction. The facilities will dismantle used batteries, separate components and recover metals such as lithium, cobalt and nickel for reuse. Investors warn, however, that profitability depends on a stable regulatory framework and competitive electricity prices.",
+      "Industry groups have called for additional incentives, similar to those introduced in the United States, while environmental campaigners stress the importance of high recycling standards and worker safety."
+    ]
+  },
+  {
+    id: "language-learning-apps",
+    title: "Language apps face a reckoning as AI chatbots learn to teach",
+    source: "BBC 风格 · Technology",
+    level: "IELTS 6.5–7.5",
+    forcedBlanks: ["subscribers","conversational","traditional","competitive","retention","adapt","fluency","metrics"],
+    body: [
+      "Popular language-learning applications are facing a reckoning as conversational AI tools begin to offer free, personalised practice that rivals their paid services. Several traditional providers reported a slowdown in subscriber growth in their most recent quarterly results.",
+      "The competitive pressure has prompted established platforms to integrate AI tutors of their own, while emphasising features such as structured curriculums and progress tracking. Executives argue that motivation and retention remain harder problems than raw conversation practice.",
+      "Researchers caution that fluency metrics generated by chatbots can be misleading, particularly for beginners who may rehearse incorrect grammar without noticing. Independent assessment, they suggest, will become increasingly important.",
+      "Even so, learners report that on-demand AI conversation has transformed their study habits. Schools and universities are now beginning to adapt their teaching, focusing classroom time on cultural context and feedback that algorithms still struggle to provide."
+    ]
+  }
+];
+
+/* ---------------------- 工具 ---------------------- */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const LS = {
+  get(k,d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d } catch{ return d } },
+  set(k,v){ localStorage.setItem(k, JSON.stringify(v)) },
+  del(k){ localStorage.removeItem(k) }
+};
+const KEY_MISTAKES = "bbc_ielts_mistakes_v1";
+const KEY_HISTORY  = "bbc_ielts_history_v1";
+const KEY_TODAY    = "bbc_ielts_today_v1";    // {dateStr, passageId, answers, submitted}
+const KEY_FETCHED  = "bbc_ielts_fetched_v1";  // 抓取的最新文章
+
+function todayStr(){
+  const d = new Date();
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function dateHash(s){
+  let h=0; for(const c of s) h = ((h<<5)-h + c.charCodeAt(0))|0;
+  return Math.abs(h);
+}
+function toast(msg, ms=1800){
+  const el = $("#toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove("show"), ms);
+}
+
+/* ---------------------- 雅思高频停用词 + 简单可猜词，避免挖空 ---------------------- */
+const STOP = new Set(("a an the and or but if then else when while because since although though as of in on at by to from for with without about into onto over under between among through during before after above below up down off out into out is are was were be been being am does do did doing has have had having will would shall should can could may might must this that these those there here it its their his her our your my we they he she you i not no nor so too very just only also own same such other another some any all each every most more less few many much one two three four five six seven eight nine ten which who whom whose what whatever whichever whoever how however where wherever why because but yet still already ever never always often sometimes usually rarely seldom hardly almost quite rather nearly across along around against beyond despite except inside outside near per plus throughout toward towards underneath unlike upon versus via within mr mrs ms dr say said says told tell get got make made take took give gave go went come came see saw use used find found think thought know knew want wanted need needed try tried leave left feel felt become became look looked seem seemed turn turned put set keep kept hold held bring brought begin began start started end ended call called help helped show showed mean meant ask asked work worked play played run ran move moved live lived believe believed").split(/\s+/));
+
+/* IELTS 风格关键词偏好：长一点、含元音组合、内容词；专有名词跳过（首字母大写） */
+function pickBlanks(words, forced=[]) {
+  const candidates = [];
+  for (let i=0;i<words.length;i++){
+    const raw = words[i];
+    if (!/^[A-Za-z][A-Za-z'-]*$/.test(raw)) continue;
+    const lower = raw.toLowerCase();
+    if (STOP.has(lower)) continue;
+    if (lower.length < 4) continue;
+    // 跳过专有名词（首字母大写且不在句首）
+    const isCap = /^[A-Z]/.test(raw);
+    const prevPunct = i===0 || /[.!?]"?$/.test(words[i-1]);
+    if (isCap && !prevPunct) continue;
+    // 跳过句首大写词（除非是 forced）
+    if (isCap && prevPunct && !forced.includes(lower)) continue;
+    let score = lower.length;
+    if (/[aeiou].*[aeiou]/.test(lower)) score += 2; // 多音节
+    if (/(tion|ment|ity|ous|ive|able|ence|ance)$/.test(lower)) score += 4; // 学术后缀
+    if (/(ing|ed|s)$/.test(lower)) score += 1;
+    if (forced.includes(lower)) score += 100;
+    candidates.push({i, raw, lower, score});
+  }
+  // 强制词优先 + 高分词；并保证间隔
+  candidates.sort((a,b)=>b.score-a.score);
+  const targetCount = Math.min(20, Math.max(12, Math.round(words.length * 0.06)));
+  const picked = [];
+  const usedIdx = new Set();
+  for (const c of candidates){
+    if (picked.length >= targetCount) break;
+    let tooClose = false;
+    for (const idx of usedIdx) if (Math.abs(idx - c.i) < 5){ tooClose=true; break; }
+    if (tooClose) continue;
+    picked.push(c); usedIdx.add(c.i);
+  }
+  picked.sort((a,b)=>a.i-b.i);
+  return picked;
+}
+
+/* ---------------------- 渲染 cloze ---------------------- */
+let CURRENT = null; // {passage, words, blanks, paraIdx}
+function renderPassage(passage){
+  const container = $("#passage");
+  container.innerHTML = "";
+
+  // 把每段拆词并标注空位；空位的 (paraIdx, wordIdx) 用 data 属性
+  const allBlanks = []; // {key:"p-w", answer, blankNo}
+  const paragraphs = passage.body.map((para, pIdx)=>{
+    const tokens = para.match(/[A-Za-z][A-Za-z'-]*|\s+|[^\sA-Za-z'-]+/g) || [];
+    return { pIdx, tokens };
+  });
+  // 我们把"词"提取出来用于 pickBlanks，但要保留位置回填
+  const wordRefs = []; // {pIdx, tokenIdx, raw}
+  paragraphs.forEach(P=>{
+    P.tokens.forEach((t, tIdx)=>{
+      if (/^[A-Za-z][A-Za-z'-]*$/.test(t)) wordRefs.push({pIdx:P.pIdx, tokenIdx:tIdx, raw:t});
+    });
+  });
+  const words = wordRefs.map(w=>w.raw);
+  const picked = pickBlanks(words, passage.forcedBlanks||[]);
+  const pickedSet = new Set(picked.map(p=>p.i));
+  let blankNo = 0;
+  picked.forEach(p=>{
+    const ref = wordRefs[p.i];
+    allBlanks.push({
+      no: ++blankNo,
+      pIdx: ref.pIdx, tokenIdx: ref.tokenIdx,
+      answer: ref.raw,
+      lower: ref.raw.toLowerCase()
+    });
+  });
+  const blankByPos = new Map(allBlanks.map(b => [b.pIdx+":"+b.tokenIdx, b]));
+
+  // 渲染
+  let wIndex = -1;
+  paragraphs.forEach(P=>{
+    const p = document.createElement("p");
+    P.tokens.forEach((tok, tIdx)=>{
+      if (/^[A-Za-z][A-Za-z'-]*$/.test(tok)){
+        wIndex++;
+        const b = blankByPos.get(P.pIdx+":"+tIdx);
+        if (b){
+          const inp = document.createElement("input");
+          inp.type = "text";
+          inp.className = "blank";
+          inp.autocomplete = "off"; inp.spellcheck = false;
+          inp.dataset.no = b.no;
+          inp.dataset.answer = b.answer;
+          inp.size = Math.max(b.answer.length, 6);
+          inp.placeholder = `(${b.no})`;
+          p.appendChild(inp);
+        } else {
+          p.appendChild(document.createTextNode(tok));
+        }
+      } else {
+        p.appendChild(document.createTextNode(tok));
+      }
+    });
+    container.appendChild(p);
+  });
+
+  CURRENT = { passage, blanks: allBlanks };
+
+  // 从 localStorage 恢复填写状态
+  const saved = LS.get(KEY_TODAY, null);
+  if (saved && saved.passageId === passage.id && saved.dateStr === todayStr()){
+    const inputs = $$(".blank");
+    (saved.answers||[]).forEach((v,i)=>{ if (inputs[i]) inputs[i].value = v||""; });
+    if (saved.submitted){ // 自动重新批改一次以恢复显示
+      grade(/*restore*/true);
+    }
+  }
+  saveToday();
+}
+
+function saveToday(){
+  if (!CURRENT) return;
+  const inputs = $$(".blank");
+  const answers = inputs.map(i=>i.value);
+  LS.set(KEY_TODAY, {
+    dateStr: todayStr(),
+    passageId: CURRENT.passage.id,
+    answers,
+    submitted: !!$("#resultCard") && !$("#resultCard").classList.contains("hidden")
+  });
+}
+
+/* ---------------------- 批改 ---------------------- */
+function normalize(s){ return (s||"").trim().toLowerCase().replace(/[''`]/g,"'"); }
+function grade(restore){
+  if (!CURRENT) return;
+  const inputs = $$(".blank");
+  let correct = 0;
+  inputs.forEach((inp,idx)=>{
+    const ans = CURRENT.blanks[idx].answer;
+    const got = normalize(inp.value);
+    const exp = normalize(ans);
+    inp.classList.remove("ok","bad");
+    // 移除旧的答案标签
+    if (inp.nextSibling && inp.nextSibling.classList && inp.nextSibling.classList.contains("answer")){
+      inp.nextSibling.remove();
+    }
+    if (got && got === exp){
+      correct++;
+      inp.classList.add("ok");
+      inp.disabled = true;
+    } else {
+      inp.classList.add("bad");
+      inp.disabled = true;
+      const tag = document.createElement("span");
+      tag.className = "answer";
+      tag.textContent = " "+ans;
+      inp.after(tag);
+    }
+  });
+  const total = inputs.length;
+  const wrong = total - correct;
+  const score10 = total ? +(correct/total*10).toFixed(1) : 0;
+  const band = mapBand(score10);
+
+  $("#score10").textContent = score10.toFixed(1);
+  $("#bandText").textContent = `≈ 雅思 ${band}`;
+  $("#stCorrect").textContent = correct;
+  $("#stWrong").textContent = wrong;
+  $("#stTotal").textContent = total;
+  $("#progBar").style.width = (correct/Math.max(total,1)*100)+"%";
+  $("#resultCard").classList.remove("hidden");
+
+  if (!restore){
+    // 写入错题本
+    const mistakes = LS.get(KEY_MISTAKES, []);
+    inputs.forEach((inp, idx)=>{
+      if (inp.classList.contains("bad")){
+        const b = CURRENT.blanks[idx];
+        const ctx = makeContext(CURRENT.passage, b);
+        mistakes.push({
+          date: todayStr(), passageId: CURRENT.passage.id, title: CURRENT.passage.title,
+          answer: b.answer, got: inp.value || "(空)",
+          context: ctx
+        });
+      }
+    });
+    LS.set(KEY_MISTAKES, mistakes);
+    // 历史记录
+    const hist = LS.get(KEY_HISTORY, []);
+    hist.unshift({
+      date: todayStr(), passageId: CURRENT.passage.id, title: CURRENT.passage.title,
+      score10, band, correct, total
+    });
+    LS.set(KEY_HISTORY, hist.slice(0,200));
+    refreshErrCount();
+    saveToday();
+    toast(`已批改：${correct}/${total} · ${score10.toFixed(1)}/10 · ${band}`);
+  } else {
+    refreshErrCount();
+  }
+}
+function mapBand(s){
+  if (s>=9.5) return "9.0";
+  if (s>=8.5) return "8.5";
+  if (s>=7.5) return "8.0";
+  if (s>=6.5) return "7.5";
+  if (s>=5.5) return "7.0";
+  if (s>=4.5) return "6.5";
+  if (s>=3.5) return "6.0";
+  if (s>=2.5) return "5.5";
+  if (s>=1.5) return "5.0";
+  return "4.5";
+}
+function makeContext(passage, blank){
+  // 在原段落中标出错答位置周围 8 个词
+  const para = passage.body[blank.pIdx];
+  const tokens = para.match(/[A-Za-z][A-Za-z'-]*|\s+|[^\sA-Za-z'-]+/g) || [];
+  const start = Math.max(0, blank.tokenIdx-12), end = Math.min(tokens.length, blank.tokenIdx+12);
+  let out = "";
+  for (let i=start;i<end;i++){
+    if (i===blank.tokenIdx) out += `<b>${blank.answer}</b>`;
+    else out += tokens[i];
+  }
+  return (start>0?"… ":"") + out + (end<tokens.length?" …":"");
+}
+
+/* ---------------------- 揭示答案 ---------------------- */
+function reveal(){
+  if (!CURRENT) return;
+  $$(".blank").forEach((inp,idx)=>{
+    inp.value = CURRENT.blanks[idx].answer;
+    inp.disabled = true;
+    inp.classList.remove("bad"); inp.classList.add("ok");
+  });
+}
+
+/* ---------------------- 重置本篇 ---------------------- */
+function resetCurrent(){
+  if (!CURRENT) return;
+  $$(".blank").forEach(inp=>{ inp.value=""; inp.disabled=false; inp.classList.remove("ok","bad"); });
+  $$(".answer").forEach(a=>a.remove());
+  $("#resultCard").classList.add("hidden");
+  saveToday();
+  toast("已清空本篇答案");
+}
+
+/* ---------------------- 选择今日文章 ---------------------- */
+function pickTodayPassage(){
+  const fetched = LS.get(KEY_FETCHED, null);
+  if (fetched && fetched.dateStr === todayStr()) return fetched.passage;
+  const saved = LS.get(KEY_TODAY, null);
+  if (saved && saved.dateStr === todayStr()){
+    const p = PASSAGES.find(p=>p.id===saved.passageId);
+    if (p) return p;
+  }
+  const idx = dateHash(todayStr()) % PASSAGES.length;
+  return PASSAGES[idx];
+}
+function loadPassage(passage){
+  $("#title").textContent = passage.title;
+  $("#srcLabel").textContent = passage.source || "BBC";
+  $("#diffLabel").textContent = passage.level || "";
+  $("#dateLabel").textContent = todayStr();
+  renderPassage(passage);
+  stopSpeak();
+}
+
+/* ---------------------- 语音朗读 ---------------------- */
+let utter = null;
+function preferredVoice(){
+  const voices = speechSynthesis.getVoices();
+  // 英音优先
+  return voices.find(v=>/en-GB/i.test(v.lang) && /female/i.test(v.name))
+      || voices.find(v=>/en-GB/i.test(v.lang))
+      || voices.find(v=>/^en/i.test(v.lang))
+      || voices[0];
+}
+function speak(){
+  if (!CURRENT) return;
+  if (utter && speechSynthesis.paused){ speechSynthesis.resume(); return; }
+  stopSpeak();
+  const text = CURRENT.passage.body.join(" ");
+  utter = new SpeechSynthesisUtterance(text);
+  utter.voice = preferredVoice();
+  utter.rate = parseFloat($("#rate").value);
+  utter.pitch = 1;
+  utter.lang = "en-GB";
+  if ($("#autohide").checked){
+    $("#passage").style.filter = "blur(6px)";
+    $("#passage").style.userSelect = "none";
+  }
+  utter.onend = ()=>{
+    $("#passage").style.filter = "";
+    $("#passage").style.userSelect = "";
+  };
+  speechSynthesis.speak(utter);
+}
+function pauseSpeak(){ if (speechSynthesis.speaking) speechSynthesis.pause(); }
+function stopSpeak(){
+  speechSynthesis.cancel();
+  $("#passage").style.filter = "";
+  $("#passage").style.userSelect = "";
+}
+
+/* ---------------------- BBC 抓取（CORS 代理） ---------------------- */
+async function fetchBBC(){
+  const proxies = [
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://r.jina.ai/${u}`
+  ];
+  const rss = "https://feeds.bbci.co.uk/news/world/rss.xml";
+  for (const make of proxies){
+    try{
+      const r = await fetch(make(rss), {cache:"no-store"});
+      if (!r.ok) continue;
+      const text = await r.text();
+      const items = parseRSS(text);
+      if (!items.length) continue;
+      const it = items.find(i => (i.description||"").length > 200) || items[0];
+      const para = (it.description||"").replace(/<[^>]+>/g,"").trim();
+      if (para.length < 80) continue;
+      const passage = {
+        id: "bbc-live-"+Date.now(),
+        title: it.title,
+        source: "BBC News · 实时",
+        level: "原文难度（未分级）",
+        body: para.split(/(?<=[.!?])\s+(?=[A-Z])/).reduce((acc,s)=>{
+          // 每两三句合一段
+          if (!acc.length || acc[acc.length-1].length>240) acc.push(s);
+          else acc[acc.length-1] += " "+s;
+          return acc;
+        }, [])
+      };
+      LS.set(KEY_FETCHED, {dateStr: todayStr(), passage});
+      LS.del(KEY_TODAY); // 清掉旧填写
+      loadPassage(passage);
+      toast("已加载 BBC 最新内容");
+      return;
+    }catch(e){ /* try next proxy */ }
+  }
+  toast("抓取失败：所有代理均不可用，已回退到内置文章");
+}
+function parseRSS(xml){
+  try{
+    const doc = new DOMParser().parseFromString(xml, "text/xml");
+    return Array.from(doc.querySelectorAll("item")).map(it=>({
+      title: it.querySelector("title")?.textContent?.trim() || "",
+      description: it.querySelector("description")?.textContent?.trim() || "",
+      link: it.querySelector("link")?.textContent?.trim() || ""
+    }));
+  }catch{ return []; }
+}
+
+/* ---------------------- 错题本 / 历史 ---------------------- */
+function refreshErrCount(){
+  const n = (LS.get(KEY_MISTAKES, [])).length;
+  $("#errCount").textContent = n ? `(${n})` : "";
+}
+function renderErrors(){
+  const list = LS.get(KEY_MISTAKES, []);
+  const el = $("#errList");
+  $("#errMeta").textContent = list.length ? `共 ${list.length} 条` : "";
+  if (!list.length){ el.innerHTML = `<div class="empty">还没有错题。开始练习吧～</div>`; return; }
+  el.innerHTML = list.slice().reverse().map(m=>`
+    <div class="errItem">
+      <div>
+        <div><b style="color:var(--good)">${escapeHtml(m.answer)}</b>
+          <span style="color:var(--ink-faint);margin:0 6px">←</span>
+          <s style="color:var(--bad)">${escapeHtml(m.got)}</s>
+        </div>
+        <div class="ctx">${m.context}</div>
+        <div class="src" style="margin-top:4px">${escapeHtml(m.title)} · ${m.date}</div>
+      </div>
+    </div>
+  `).join("");
+}
+function renderHistory(){
+  const list = LS.get(KEY_HISTORY, []);
+  const el = $("#histList");
+  if (!list.length){ el.innerHTML = `<div class="empty">还没有练习记录。</div>`; return; }
+  el.innerHTML = list.map(h=>`
+    <div class="errItem">
+      <div>
+        <div><b>${escapeHtml(h.title)}</b></div>
+        <div class="src" style="margin-top:4px">${h.date} · ${h.correct}/${h.total} 正确</div>
+      </div>
+      <div style="text-align:right">
+        <div class="bigScore" style="font-size:22px">${h.score10.toFixed(1)}<span class="unit">/10</span></div>
+        <div class="band">≈ 雅思 ${h.band}</div>
+      </div>
+    </div>
+  `).join("");
+}
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+/* ---------------------- Tabs ---------------------- */
+function selectTab(name){
+  $$(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===name));
+  $("#tabToday").classList.toggle("hidden", name!=="today");
+  $("#tabErrs").classList.toggle("hidden", name!=="errs");
+  $("#tabHist").classList.toggle("hidden", name!=="hist");
+  if (name==="errs") renderErrors();
+  if (name==="hist") renderHistory();
+}
+
+/* ---------------------- 事件绑定 ---------------------- */
+window.addEventListener("DOMContentLoaded", ()=>{
+  // tabs
+  $$(".tab").forEach(t=>t.addEventListener("click", ()=>selectTab(t.dataset.tab)));
+
+  // 加载今日
+  loadPassage(pickTodayPassage());
+  refreshErrCount();
+
+  // 输入自动保存
+  document.addEventListener("input", e=>{ if (e.target.classList?.contains("blank")) saveToday(); });
+
+  // 按钮
+  $("#btnPlay").addEventListener("click", speak);
+  $("#btnPause").addEventListener("click", pauseSpeak);
+  $("#btnStop").addEventListener("click", stopSpeak);
+  $("#rate").addEventListener("input", ()=>{ $("#rateVal").textContent = (+$("#rate").value).toFixed(2)+"×"; });
+  $("#btnSubmit").addEventListener("click", ()=>grade(false));
+  $("#btnReveal").addEventListener("click", reveal);
+  $("#btnReset").addEventListener("click", resetCurrent);
+  $("#btnNext").addEventListener("click", ()=>{
+    // 在内置库里换下一篇（不影响"今日"自动选择，仅本次）
+    const cur = CURRENT?.passage?.id;
+    let idx = PASSAGES.findIndex(p=>p.id===cur);
+    if (idx<0) idx = -1;
+    const next = PASSAGES[(idx+1) % PASSAGES.length];
+    LS.del(KEY_TODAY);
+    loadPassage(next);
+    toast("已切换到下一篇");
+  });
+  $("#btnFetch").addEventListener("click", async ()=>{
+    $("#btnFetch").disabled = true;
+    $("#btnFetch").textContent = "抓取中…";
+    await fetchBBC();
+    $("#btnFetch").disabled = false;
+    $("#btnFetch").textContent = "🌐 抓取 BBC 最新";
+  });
+  $("#btnResetErrs").addEventListener("click", ()=>{
+    if (!confirm("确定清空错题本？此操作不可恢复。")) return;
+    LS.set(KEY_MISTAKES, []);
+    refreshErrCount(); renderErrors();
+    toast("错题本已重置");
+  });
+  $("#btnResetHist").addEventListener("click", ()=>{
+    if (!confirm("确定清空历史记录？")) return;
+    LS.set(KEY_HISTORY, []);
+    renderHistory(); toast("历史已清空");
+  });
+  $("#btnExport").addEventListener("click", ()=>{
+    const list = LS.get(KEY_MISTAKES, []);
+    const csv = "date,title,answer,your_input\n" + list.map(m=>{
+      const cell = s => `"${String(s||"").replace(/"/g,'""')}"`;
+      return [cell(m.date), cell(m.title), cell(m.answer), cell(m.got)].join(",");
+    }).join("\n");
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `mistakes-${todayStr()}.csv`; a.click();
+  });
+
+  // Speech voices may load async
+  if (typeof speechSynthesis !== "undefined"){
+    speechSynthesis.onvoiceschanged = ()=>{};
+  }
+});
+</script>
+</body>
+</html>
