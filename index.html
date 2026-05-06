@@ -368,6 +368,27 @@
   .item .right{ text-align: right; }
   .item .right .scoreNum{ font-size: 26px; }
   .item .right .scoreNum .of{ font-size: 13px; }
+  .item .ctx.sentence{ font-size: 15px; color: var(--ink); line-height: 1.6; }
+  .item .ctx.sentence b.sentAns{ color: #248a3d; font-weight: 600; }
+  .err-item{
+    cursor: pointer;
+    align-items: center;
+    transition: background .15s ease, box-shadow .15s ease, transform .08s ease;
+  }
+  .err-item:hover{ background: #fff; box-shadow: var(--shadow-sm); }
+  .err-item:active{ transform: scale(0.995); }
+  .err-item.playing{ background: var(--accent-soft); border-color: rgba(0,113,227,0.25); }
+  .err-item:focus{ outline: 2px solid var(--accent); outline-offset: 2px; }
+  .play-mark{
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .err-item:hover .play-mark{ transform: scale(1.06); background: var(--accent); color: #fff; }
+  .err-item.playing .play-mark{ background: var(--accent); color: #fff; }
+  .play-mark svg{ width: 11px; height: 11px; margin-left: 1px; }
 
   /* Toast */
   .toast{
@@ -802,9 +823,11 @@ function grade(restore){
     inputs.forEach((inp, idx)=>{
       if (inp.classList.contains("bad")){
         const b = CURRENT.blanks[idx];
+        const sent = buildSentence(CURRENT.passage, b);
         mistakes.push({
           date: todayStr(), passageId: CURRENT.passage.id, title: CURRENT.passage.title,
           answer: b.answer, got: inp.value || "(空)",
+          sentenceBefore: sent.before, sentenceAfter: sent.after,
           context: makeContext(CURRENT.passage, b)
         });
       }
@@ -845,6 +868,27 @@ function makeContext(passage, blank){
     else out += tokens[i];
   }
   return (start>0?"… ":"") + out + (end<tokens.length?" …":"");
+}
+
+/* 取出包含挖空词的整句：向前找到上一个句末标点，向后找到本句句末标点 */
+function buildSentence(passage, blank){
+  const para = passage.body[blank.pIdx];
+  const tokens = para.match(/[A-Za-z][A-Za-z'-]*|\s+|[^\sA-Za-z'-]+/g) || [];
+  let start = 0;
+  for (let i = blank.tokenIdx - 1; i >= 0; i--){
+    if (/[.!?]/.test(tokens[i])){
+      start = i + 1;
+      while (start < tokens.length && /^\s+$/.test(tokens[start])) start++;
+      break;
+    }
+  }
+  let end = tokens.length;
+  for (let i = blank.tokenIdx + 1; i < tokens.length; i++){
+    if (/[.!?]/.test(tokens[i])){ end = i + 1; break; }
+  }
+  const before = tokens.slice(start, blank.tokenIdx).join("").replace(/^\s+/, "");
+  const after  = tokens.slice(blank.tokenIdx + 1, end).join("").replace(/\s+$/, "");
+  return { before, after };
 }
 function reveal(){
   if (!CURRENT) return;
@@ -1171,6 +1215,28 @@ const Speech = {
   removeBlur(){
     $("#passage").style.filter = "";
     $("#passage").style.userSelect = "";
+  },
+
+  /* 朗读单句（错题本回看用）：会打断主播放，结束后回到 idle */
+  speakOnce(text, onend){
+    if (!text || !("speechSynthesis" in window)) return;
+    if (this._tickId){ clearInterval(this._tickId); this._tickId = null; }
+    speechSynthesis.cancel();
+    this.state = "idle";
+    this.cursor = 0;
+    this.playedChars = 0;
+    this.currentCharIndex = 0;
+    this.chunks = [];
+    this.totalChars = 0;
+    this.updateProgress();
+    this.updateActiveBtn();
+
+    const u = new SpeechSynthesisUtterance(text);
+    if (this.voice){ u.voice = this.voice; u.lang = this.voice.lang; }
+    u.rate = this.rate; u.pitch = 1; u.volume = 1;
+    u.onend = ()=>{ if (typeof onend === "function") onend(); };
+    u.onerror = ()=>{ if (typeof onend === "function") onend(); };
+    speechSynthesis.speak(u);
   }
 };
 
@@ -1239,21 +1305,47 @@ function refreshErrCount(){
 function renderErrors(){
   const list = LS.get(KEY_MISTAKES, []);
   const el = $("#errList");
-  $("#errMeta").textContent = list.length ? `共 ${list.length} 条` : "";
+  $("#errMeta").textContent = list.length ? `共 ${list.length} 条 · 点击任意条听原句` : "";
   if (!list.length){ el.innerHTML = `<div class="empty">还没有错题。开始练习吧。</div>`; return; }
-  el.innerHTML = list.slice().reverse().map(m=>`
-    <div class="item">
+  el.innerHTML = list.slice().reverse().map((m, revIdx)=>{
+    const realIdx = list.length - 1 - revIdx;
+    const hasSentence = (m.sentenceBefore != null) || (m.sentenceAfter != null);
+    const sentenceHtml = hasSentence
+      ? `${escapeHtml(m.sentenceBefore || "")}<b class="sentAns">${escapeHtml(m.answer)}</b>${escapeHtml(m.sentenceAfter || "")}`
+      : (m.context || "");
+    return `
+    <div class="item err-item" data-idx="${realIdx}" tabindex="0" role="button" aria-label="重新播放这一句">
       <div>
-        <div class="answer-line">
-          <b>${escapeHtml(m.answer)}</b>
-          <span style="color:var(--ink-4)">←</span>
+        <div class="ctx sentence">${sentenceHtml}</div>
+        <div class="answer-line" style="margin-top:6px">
+          <span style="color:var(--ink-4);font-size:12px">你写的</span>
           <s>${escapeHtml(m.got)}</s>
+          <span style="color:var(--ink-4);font-size:12px;margin-left:6px">正确</span>
+          <b>${escapeHtml(m.answer)}</b>
         </div>
-        <div class="ctx">${m.context}</div>
         <div class="src">${escapeHtml(m.title)} · ${m.date}</div>
       </div>
+      <div class="play-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2.5v11l10-5.5z"/></svg>
+      </div>
     </div>
-  `).join("");
+  `;}).join("");
+}
+function playErrorItem(itemEl){
+  const idx = +itemEl.dataset.idx;
+  const list = LS.get(KEY_MISTAKES, []);
+  const m = list[idx];
+  if (!m) return;
+  let text;
+  if (m.sentenceBefore != null || m.sentenceAfter != null){
+    text = ((m.sentenceBefore||"") + " " + m.answer + " " + (m.sentenceAfter||"")).replace(/\s+/g, " ").trim();
+  } else if (m.context){
+    text = m.context.replace(/<[^>]+>/g, "").replace(/…/g, "").trim();
+  }
+  if (!text) return;
+  $$(".err-item.playing").forEach(n=>n.classList.remove("playing"));
+  itemEl.classList.add("playing");
+  Speech.speakOnce(text, ()=> itemEl.classList.remove("playing"));
 }
 function renderHistory(){
   const list = LS.get(KEY_HISTORY, []);
@@ -1340,6 +1432,19 @@ window.addEventListener("DOMContentLoaded", ()=>{
     LS.set(KEY_MISTAKES, []);
     refreshErrCount(); renderErrors();
     toast("错题本已重置");
+  });
+  // 点击错题任意位置朗读那一句
+  $("#errList").addEventListener("click", e=>{
+    const item = e.target.closest(".err-item");
+    if (!item) return;
+    playErrorItem(item);
+  });
+  $("#errList").addEventListener("keydown", e=>{
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const item = e.target.closest(".err-item");
+    if (!item) return;
+    e.preventDefault();
+    playErrorItem(item);
   });
   $("#btnResetHist").addEventListener("click", ()=>{
     if (!confirm("确定清空历史记录？")) return;
