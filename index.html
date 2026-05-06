@@ -2,145 +2,464 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#fbfbfd" />
 <title>每日 BBC 雅思填空</title>
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel-2:#1f232d;
-    --ink:#e8ecf1; --ink-dim:#9aa3b2; --ink-faint:#5b6371;
-    --accent:#7cc4ff; --accent-2:#a6e3a1; --warn:#f5a97f; --bad:#f38ba8; --good:#a6e3a1;
-    --line:#2a2f3a; --gap:14px;
+    --bg: #f5f5f7;
+    --bg-grad: radial-gradient(120% 80% at 50% -10%, #ffffff 0%, #f5f5f7 60%);
+    --surface: #ffffff;
+    --surface-2: #fbfbfd;
+    --surface-tint: rgba(255,255,255,0.72);
+    --ink: #1d1d1f;
+    --ink-2: #424245;
+    --ink-3: #6e6e73;
+    --ink-4: #86868b;
+    --line: rgba(0,0,0,0.08);
+    --line-2: rgba(0,0,0,0.04);
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --accent-soft: rgba(0,113,227,0.10);
+    --good: #34c759;
+    --good-soft: rgba(52,199,89,0.12);
+    --bad: #ff3b30;
+    --bad-soft: rgba(255,59,48,0.10);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.03);
+    --shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+    --shadow-lg: 0 24px 64px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+    --r-sm: 10px;
+    --r: 16px;
+    --r-lg: 22px;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Helvetica Neue",sans-serif}
-  a{color:var(--accent)}
-  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
-  header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-  h1{font-size:20px;margin:0;letter-spacing:.2px}
-  .sub{color:var(--ink-dim);font-size:13px}
-  .tabs{display:flex;gap:6px}
-  .tab{background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
-       padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px}
-  .tab.active{background:var(--panel-2);color:var(--ink);border-color:#3a4252}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:var(--gap)}
-  .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;color:var(--ink-dim);font-size:13px;margin-bottom:6px}
-  .meta .pill{background:var(--panel-2);border:1px solid var(--line);padding:2px 8px;border-radius:999px;font-size:12px}
-  h2.title{margin:6px 0 10px;font-size:18px;line-height:1.4}
-  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
-  button{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);
-         padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px}
-  button:hover{border-color:#475063}
-  button.primary{background:#1f3a5b;border-color:#2a4f7a;color:#dbeaff}
-  button.primary:hover{background:#26456b}
-  button.danger{background:#3b1f25;border-color:#6b2f3a;color:#ffd6dd}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  .passage{font-size:17px;line-height:1.95;letter-spacing:.1px}
-  .passage p{margin:0 0 12px}
-  .blank{display:inline-block;min-width:7em;border:none;border-bottom:1.6px solid var(--ink-faint);
-         background:transparent;color:var(--ink);font:inherit;padding:0 4px;margin:0 1px;
-         text-align:center;outline:none;transition:border-color .15s ease}
-  .blank:focus{border-bottom-color:var(--accent)}
-  .blank.ok{border-bottom-color:var(--good);color:var(--good)}
-  .blank.bad{border-bottom-color:var(--bad);color:var(--bad);text-decoration:line-through}
-  .blank.bad + .answer{color:var(--good);margin-left:4px;font-size:.9em}
-  .answer{display:inline-block;color:var(--good)}
-  .scoreBox{display:flex;flex-wrap:wrap;align-items:center;gap:18px}
-  .bigScore{font-size:34px;font-weight:600;letter-spacing:.5px}
-  .bigScore .unit{font-size:14px;color:var(--ink-dim);margin-left:6px}
-  .band{font-size:14px;color:var(--ink-dim)}
-  .progress{height:8px;background:var(--panel-2);border-radius:99px;overflow:hidden;flex:1;min-width:160px}
-  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0;transition:width .6s ease}
-  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-  .speed{display:flex;align-items:center;gap:8px;color:var(--ink-dim);font-size:13px}
-  input[type=range]{accent-color:var(--accent)}
-  .errList{display:flex;flex-direction:column;gap:8px}
-  .errItem{display:grid;grid-template-columns:1fr auto;gap:8px;background:var(--panel-2);
-           border:1px solid var(--line);padding:10px 12px;border-radius:10px;font-size:14px}
-  .errItem .ctx{color:var(--ink-dim);font-size:12.5px;margin-top:3px;line-height:1.55}
-  .errItem .ctx b{color:var(--good);font-weight:600}
-  .errItem .ctx s{color:var(--bad)}
-  .empty{color:var(--ink-faint);text-align:center;padding:30px 10px;font-size:14px}
-  .hint{color:var(--ink-dim);font-size:13px;margin-top:8px}
-  .switch{display:inline-flex;align-items:center;gap:6px;color:var(--ink-dim);font-size:13px;cursor:pointer;user-select:none}
-  .hidden{display:none !important}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
-         background:#222831;border:1px solid var(--line);padding:10px 16px;border-radius:10px;font-size:13px;
-         opacity:0;transition:opacity .25s ease;pointer-events:none;z-index:99}
-  .toast.show{opacity:1}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-  .stats .s{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-  .stats .s b{display:block;font-size:18px;color:var(--ink)}
-  .stats .s span{font-size:12px;color:var(--ink-dim)}
-  details summary{cursor:pointer;color:var(--ink-dim);font-size:13px;margin-top:8px}
-  details[open] summary{color:var(--ink)}
-  .src{font-size:12px;color:var(--ink-faint)}
-  @media(max-width:520px){
-    .passage{font-size:16px}
-    .blank{min-width:5.5em}
+  html,body{margin:0;padding:0}
+  body{
+    background: var(--bg-grad);
+    background-attachment: fixed;
+    color: var(--ink);
+    font: 17px/1.47 -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: -0.022em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+  ::selection{ background: var(--accent-soft); color: var(--ink); }
+
+  .wrap{ max-width: 780px; margin: 0 auto; padding: 28px 22px 96px; }
+
+  /* Header */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 22px; gap: 16px;
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; }
+  .brand h1{
+    margin:0; font-size: 22px; font-weight: 600;
+    letter-spacing: -0.03em; color: var(--ink);
+  }
+  .brand .sub{ font-size: 13px; color: var(--ink-3); letter-spacing: -0.01em; }
+
+  /* Segmented control (Apple style tabs) */
+  .seg{
+    display:inline-flex; padding: 3px; border-radius: 10px;
+    background: rgba(120,120,128,0.12);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+  .seg button{
+    border:none; background:transparent;
+    padding: 6px 14px; border-radius: 8px;
+    font: inherit; font-size: 13px; font-weight: 500;
+    color: var(--ink-2); cursor: pointer;
+    transition: background .18s ease, color .18s ease, transform .12s ease;
+    letter-spacing: -0.01em;
+  }
+  .seg button:hover{ color: var(--ink); }
+  .seg button.active{
+    background: #fff; color: var(--ink);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .seg button .badge{
+    display:inline-block; min-width: 18px; padding: 0 6px; margin-left: 4px;
+    background: var(--accent); color: #fff;
+    border-radius: 999px; font-size: 11px; font-weight: 600;
+    line-height: 16px; vertical-align: 1px;
+  }
+
+  /* Cards */
+  .card{
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow);
+    padding: 26px 28px;
+    margin-bottom: 16px;
+  }
+  .card.subtle{
+    background: var(--surface-2);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Meta */
+  .meta{
+    display:flex; flex-wrap:wrap; gap: 8px; align-items: center;
+    margin-bottom: 10px;
+  }
+  .pill{
+    background: rgba(0,0,0,0.04);
+    color: var(--ink-3);
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 500; letter-spacing: -0.01em;
+  }
+  .pill.accent{ background: var(--accent-soft); color: var(--accent); }
+  .pill.live{ background: var(--good-soft); color: #248a3d; }
+
+  h2.title{
+    margin: 4px 0 18px;
+    font-size: 26px; font-weight: 600; line-height: 1.18;
+    letter-spacing: -0.025em; color: var(--ink);
+  }
+
+  /* Player toolbar */
+  .player{
+    display:flex; flex-wrap: wrap; gap: 10px; align-items:center;
+    padding: 12px 14px; border-radius: var(--r);
+    background: var(--surface-2);
+    border: 1px solid var(--line-2);
+    margin-bottom: 18px;
+  }
+  .player .group{ display:flex; align-items:center; gap: 6px; }
+  .player .sep{ width:1px; height: 22px; background: var(--line); margin: 0 4px; }
+
+  .icon-btn{
+    width: 36px; height: 36px; border-radius: 50%;
+    border: none; background: #fff;
+    color: var(--ink); cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex; align-items:center; justify-content:center;
+    transition: transform .08s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .icon-btn:hover{ background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .icon-btn:active{ transform: scale(0.94); }
+  .icon-btn.primary{ background: var(--accent); color: #fff; }
+  .icon-btn.primary:hover{ background: var(--accent-hover); }
+  .icon-btn svg{ width: 14px; height: 14px; }
+
+  .player label{ font-size: 13px; color: var(--ink-3); display:flex; align-items:center; gap: 8px; letter-spacing: -0.01em; }
+  .player input[type=range]{
+    -webkit-appearance: none; appearance:none;
+    width: 110px; height: 4px; border-radius: 999px;
+    background: rgba(0,0,0,0.10); outline: none;
+  }
+  .player input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.20), 0 0 0 0.5px rgba(0,0,0,0.06);
+    cursor: pointer; transition: transform .1s ease;
+  }
+  .player input[type=range]::-webkit-slider-thumb:hover{ transform: scale(1.1); }
+  .player input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%;
+    background:#fff; border: none; box-shadow: 0 1px 4px rgba(0,0,0,0.20);
+    cursor: pointer;
+  }
+  .player select{
+    -webkit-appearance: none; appearance: none;
+    border: 1px solid var(--line); background: #fff;
+    border-radius: 8px; padding: 6px 28px 6px 10px;
+    font: inherit; font-size: 13px; color: var(--ink); cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%236e6e73' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat; background-position: right 10px center;
+    max-width: 200px; text-overflow: ellipsis;
+  }
+  .player .toggle{ font-size:13px; color: var(--ink-3); display: inline-flex; align-items:center; gap:6px; cursor:pointer; user-select:none; }
+  .player .toggle input{ accent-color: var(--accent); }
+
+  /* Passage */
+  .passage{
+    font-size: 18px; line-height: 1.85; color: var(--ink);
+    letter-spacing: -0.011em;
+  }
+  .passage p{ margin: 0 0 14px; }
+
+  /* Cloze blanks */
+  .blank{
+    display: inline-block;
+    min-width: 6.5em;
+    border: none;
+    border-bottom: 1.5px solid var(--ink-4);
+    background: transparent;
+    color: var(--ink);
+    font: inherit; font-size: 1em;
+    padding: 0 6px 1px;
+    margin: 0 1px;
+    text-align: center;
+    outline: none;
+    transition: border-color .15s ease, background .15s ease;
+    border-radius: 4px 4px 0 0;
+  }
+  .blank:focus{
+    border-bottom-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .blank.ok{
+    border-bottom-color: var(--good);
+    color: #248a3d;
+    background: var(--good-soft);
+  }
+  .blank.bad{
+    border-bottom-color: var(--bad);
+    color: var(--bad);
+    text-decoration: line-through;
+    background: var(--bad-soft);
+  }
+  .answer{
+    display: inline-block;
+    color: #248a3d;
+    font-weight: 500;
+    margin-left: 4px;
+    font-size: 0.92em;
+  }
+
+  /* Action row */
+  .actions{
+    display:flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 22px;
+  }
+  .btn{
+    border: none;
+    background: rgba(0,0,0,0.04);
+    color: var(--ink);
+    padding: 9px 18px;
+    border-radius: 999px;
+    font: inherit; font-size: 14px; font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: background .15s ease, transform .08s ease;
+  }
+  .btn:hover{ background: rgba(0,0,0,0.07); }
+  .btn:active{ transform: scale(0.97); }
+  .btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+  .btn.primary{
+    background: var(--accent); color: #fff;
+  }
+  .btn.primary:hover{ background: var(--accent-hover); }
+  .btn.danger{
+    background: var(--bad-soft); color: var(--bad);
+  }
+  .btn.danger:hover{ background: rgba(255,59,48,0.18); }
+  .btn.ghost{ background: transparent; color: var(--accent); }
+  .btn.ghost:hover{ background: var(--accent-soft); }
+
+  .hint{
+    color: var(--ink-3); font-size: 13.5px; margin-top: 14px;
+    letter-spacing: -0.01em;
+  }
+
+  /* Result card */
+  .result{
+    margin-top: 18px;
+    padding: 24px 26px;
+    background: linear-gradient(180deg, #ffffff 0%, var(--surface-2) 100%);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--line-2);
+  }
+  .scoreRow{
+    display:flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .scoreNum{
+    font-size: 56px; font-weight: 600;
+    letter-spacing: -0.04em; line-height: 1;
+    color: var(--ink);
+    font-feature-settings: "tnum";
+  }
+  .scoreNum .of{ font-size: 18px; color: var(--ink-3); font-weight: 500; margin-left: 4px; letter-spacing: -0.01em; }
+  .band{
+    display:inline-block; padding: 4px 12px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+    margin-top: 6px;
+  }
+  .progress{
+    flex: 1; min-width: 180px;
+    height: 6px; border-radius: 999px;
+    background: rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .progress > i{
+    display:block; height: 100%;
+    background: linear-gradient(90deg, var(--accent), #5ac8fa);
+    width: 0; transition: width .8s cubic-bezier(.22,.61,.36,1);
+  }
+  .stats{
+    display:grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-top: 18px;
+  }
+  .stat{
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line-2);
+  }
+  .stat b{
+    display:block; font-size: 22px; font-weight: 600;
+    letter-spacing: -0.02em; color: var(--ink);
+    font-feature-settings: "tnum";
+  }
+  .stat span{ font-size: 12px; color: var(--ink-3); letter-spacing: -0.01em; }
+
+  details{ margin-top: 14px; }
+  details summary{
+    cursor:pointer; font-size: 13px; color: var(--ink-3);
+    list-style: none; user-select: none;
+  }
+  details summary::-webkit-details-marker{ display:none; }
+  details summary::before{ content:"› "; transition: transform .2s; display: inline-block; }
+  details[open] summary::before{ transform: rotate(90deg); }
+  details .body{ margin-top: 8px; font-size: 13px; color: var(--ink-3); line-height: 1.6; }
+
+  /* Lists (errors / history) */
+  .empty{ color: var(--ink-4); text-align:center; padding: 40px 12px; font-size: 14px; }
+  .item{
+    display:grid; grid-template-columns: 1fr auto; gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border-radius: var(--r);
+    border: 1px solid var(--line-2);
+  }
+  .item + .item{ margin-top: 8px; }
+  .item .answer-line{
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px;
+  }
+  .item .answer-line b{ color: #248a3d; font-weight: 600; }
+  .item .answer-line s{ color: var(--bad); text-decoration-color: var(--bad); }
+  .item .ctx{ color: var(--ink-3); font-size: 13px; margin-top: 4px; line-height: 1.55; }
+  .item .ctx b{ color: #248a3d; font-weight: 600; }
+  .item .src{ color: var(--ink-4); font-size: 12px; margin-top: 4px; }
+  .item .right{ text-align: right; }
+  .item .right .scoreNum{ font-size: 26px; }
+  .item .right .scoreNum .of{ font-size: 13px; }
+
+  /* Toast */
+  .toast{
+    position: fixed; left: 50%; bottom: 30px;
+    transform: translate(-50%, 8px);
+    background: rgba(28,28,30,0.92);
+    color: #fff;
+    padding: 11px 18px; border-radius: 999px;
+    font-size: 13.5px; letter-spacing: -0.01em;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    opacity: 0; transition: opacity .25s ease, transform .25s ease;
+    pointer-events: none; z-index: 99;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.20);
+  }
+  .toast.show{ opacity: 1; transform: translate(-50%, 0); }
+
+  .row{ display:flex; flex-wrap: wrap; gap: 10px; align-items:center; }
+  .right-row{ justify-content: flex-end; }
+  .between{ justify-content: space-between; }
+  .src-text{ font-size: 12px; color: var(--ink-4); }
+
+  .hidden{ display: none !important; }
+
+  @media (max-width: 600px){
+    .wrap{ padding: 18px 14px 80px; }
+    .card{ padding: 20px 18px; border-radius: 18px; }
+    h2.title{ font-size: 22px; }
+    .passage{ font-size: 17px; line-height: 1.8; }
+    .blank{ min-width: 5.5em; }
+    .scoreNum{ font-size: 44px; }
+    .stats{ grid-template-columns: repeat(3, 1fr); }
+    .player{ padding: 10px; }
+    .player input[type=range]{ width: 90px; }
+    .player select{ max-width: 140px; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div>
+
+  <div class="topbar">
+    <div class="brand">
       <h1>每日 BBC 雅思填空</h1>
-      <div class="sub" id="subTitle">每天一篇 · 边听边填 · 自动批改</div>
+      <div class="sub">每天一篇 · 边听边填 · 自动批改</div>
     </div>
-    <div class="tabs">
-      <button class="tab active" data-tab="today">今日</button>
-      <button class="tab" data-tab="errs">错题本 <span id="errCount"></span></button>
-      <button class="tab" data-tab="hist">历史</button>
+    <div class="seg" role="tablist">
+      <button data-tab="today" class="active">今日</button>
+      <button data-tab="errs">错题本<span id="errBadge" class="badge hidden">0</span></button>
+      <button data-tab="hist">历史</button>
     </div>
-  </header>
+  </div>
 
   <!-- TODAY -->
   <section id="tabToday">
     <div class="card">
       <div class="meta">
         <span class="pill" id="dateLabel"></span>
-        <span class="pill" id="srcLabel">BBC 风格 · 内置</span>
-        <span id="diffLabel" class="src"></span>
+        <span class="pill accent" id="srcLabel">BBC 风格</span>
+        <span class="src-text" id="diffLabel"></span>
       </div>
       <h2 class="title" id="title"></h2>
 
-      <div class="toolbar">
-        <button id="btnPlay" class="primary">▶ 播放</button>
-        <button id="btnPause">⏸ 暂停</button>
-        <button id="btnStop">■ 停止</button>
-        <label class="speed">语速
+      <div class="player">
+        <div class="group">
+          <button id="btnPlay" class="icon-btn primary" title="播放">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2.5v11l10-5.5z"/></svg>
+          </button>
+          <button id="btnPause" class="icon-btn" title="暂停">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="3" width="2.6" height="10" rx="0.6"/><rect x="9.4" y="3" width="2.6" height="10" rx="0.6"/></svg>
+          </button>
+          <button id="btnStop" class="icon-btn" title="停止">
+            <svg viewBox="0 0 16 16" fill="currentColor"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg>
+          </button>
+        </div>
+
+        <div class="sep"></div>
+
+        <label>语速
           <input id="rate" type="range" min="0.6" max="1.4" step="0.05" value="0.95" />
-          <span id="rateVal">0.95×</span>
+          <span id="rateVal" style="min-width:36px;font-feature-settings:'tnum';color:var(--ink-2)">0.95×</span>
         </label>
-        <label class="switch"><input id="autohide" type="checkbox" checked />听完前隐藏文本</label>
+
+        <div class="sep"></div>
+
+        <label>语音
+          <select id="voiceSel" title="选择朗读语音"></select>
+        </label>
+
+        <label class="toggle"><input id="autohide" type="checkbox" checked />盲听模糊</label>
       </div>
 
       <div id="passage" class="passage"></div>
 
-      <div class="toolbar" style="margin-top:18px">
-        <button id="btnSubmit" class="primary">提交批改</button>
-        <button id="btnReveal">显示答案</button>
-        <button id="btnNext">换一篇</button>
-        <button id="btnFetch" title="尝试通过 CORS 代理抓取 BBC News RSS">🌐 抓取 BBC 最新</button>
-        <button id="btnReset">重置本篇</button>
+      <div class="actions">
+        <button id="btnSubmit" class="btn primary">提交批改</button>
+        <button id="btnReveal" class="btn">显示答案</button>
+        <button id="btnNext" class="btn">换一篇</button>
+        <button id="btnFetch" class="btn ghost" title="尝试通过公共代理抓取 BBC News RSS">抓取 BBC 最新</button>
+        <button id="btnReset" class="btn">重置本篇</button>
       </div>
       <div class="hint" id="hint">提示：先点播放听一遍，再回到文本填空。雅思考试中此类题型多考察拼写、词形、搭配。</div>
 
-      <div id="resultCard" class="card hidden" style="margin-top:14px;background:var(--panel-2)">
-        <div class="scoreBox">
+      <div id="resultCard" class="result hidden">
+        <div class="scoreRow">
           <div>
-            <div class="bigScore"><span id="score10">0.0</span><span class="unit">/ 10</span></div>
+            <div class="scoreNum"><span id="score10">0.0</span><span class="of">/ 10</span></div>
             <div class="band" id="bandText"></div>
           </div>
           <div class="progress"><i id="progBar"></i></div>
         </div>
         <div class="stats">
-          <div class="s"><b id="stCorrect">0</b><span>正确</span></div>
-          <div class="s"><b id="stWrong">0</b><span>错误</span></div>
-          <div class="s"><b id="stTotal">0</b><span>总空</span></div>
+          <div class="stat"><b id="stCorrect">0</b><span>正确</span></div>
+          <div class="stat"><b id="stWrong">0</b><span>错误</span></div>
+          <div class="stat"><b id="stTotal">0</b><span>总空</span></div>
         </div>
-        <details><summary>评分对照（雅思 Listening / Reading 大致换算）</summary>
-          <div class="src" style="margin-top:6px">
+        <details>
+          <summary>评分对照（雅思 Listening / Reading 大致换算）</summary>
+          <div class="body">
             10 → 9.0 · 9 → 8.5 · 8 → 7.5 · 7 → 7.0 · 6 → 6.5 · 5 → 6.0 · 4 → 5.5 · 3 → 5.0 · ≤2 → 4.5。
             采用近似映射，仅供参考；拼写错按错，大小写忽略，复数 / 时态严格。
           </div>
@@ -152,25 +471,25 @@
   <!-- ERRORS -->
   <section id="tabErrs" class="hidden">
     <div class="card">
-      <div class="row" style="justify-content:space-between">
-        <div><b>错题本</b><span class="src" id="errMeta" style="margin-left:10px"></span></div>
+      <div class="row between">
+        <div><b style="font-size:17px;letter-spacing:-0.02em">错题本</b><span class="src-text" id="errMeta" style="margin-left:10px"></span></div>
         <div class="row">
-          <button id="btnExport">导出</button>
-          <button id="btnResetErrs" class="danger">重置错题本</button>
+          <button id="btnExport" class="btn">导出 CSV</button>
+          <button id="btnResetErrs" class="btn danger">重置错题本</button>
         </div>
       </div>
-      <div id="errList" class="errList" style="margin-top:12px"></div>
+      <div id="errList" style="margin-top:14px"></div>
     </div>
   </section>
 
   <!-- HISTORY -->
   <section id="tabHist" class="hidden">
     <div class="card">
-      <div class="row" style="justify-content:space-between">
-        <b>历史成绩</b>
-        <button id="btnResetHist" class="danger">清空历史</button>
+      <div class="row between">
+        <b style="font-size:17px;letter-spacing:-0.02em">历史成绩</b>
+        <button id="btnResetHist" class="btn danger">清空历史</button>
       </div>
-      <div id="histList" class="errList" style="margin-top:12px"></div>
+      <div id="histList" style="margin-top:14px"></div>
     </div>
   </section>
 </div>
@@ -178,21 +497,14 @@
 <div id="toast" class="toast"></div>
 
 <script>
-/* ===========================================================
-   每日 BBC 雅思填空 - 单文件应用
-   - 内置 BBC 风格新闻语料（按日期轮换，含 IELTS 词汇标注）
-   - 提交批改 + 10 分制 + 雅思 band 近似映射
-   - 错题本 / 历史记录 全部 localStorage，可一键重置
-   - 音频：Web Speech API（英式优先，可调速）
-   - 可选：通过公共 CORS 代理抓取 BBC News RSS
-   =========================================================== */
+/* ============================================================
+   BBC 雅思填空 v2 · 苹果风浅色
+   - 修复语速：滑块改变时若正在朗读自动从当前位置继续
+   - 跨设备语音一致：默认偏好 Google UK English（Chrome 桌面/移动均有）
+   - 语音可手动选择并保存到 localStorage
+   - 长文本分块朗读，绕过 Chrome ~15s 卡死问题
+   ============================================================ */
 
-/* ---------------------- 内置语料 ----------------------
-   每篇文章字段：
-     id, title, date, source, level, body
-   body 为段落数组。挖空算法会自动从 body 文本中挑选 IELTS 风格关键词，
-   也可以在 forcedBlanks 中显式指定（小写词形）以保证某些核心词必挖。
-*/
 const PASSAGES = [
   {
     id: "uk-rail-investment",
@@ -291,33 +603,30 @@ const PASSAGES = [
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const LS = {
-  get(k,d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d } catch{ return d } },
-  set(k,v){ localStorage.setItem(k, JSON.stringify(v)) },
-  del(k){ localStorage.removeItem(k) }
+  get(k,d){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); } catch{ return d } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem(k); }catch{} }
 };
 const KEY_MISTAKES = "bbc_ielts_mistakes_v1";
 const KEY_HISTORY  = "bbc_ielts_history_v1";
-const KEY_TODAY    = "bbc_ielts_today_v1";    // {dateStr, passageId, answers, submitted}
-const KEY_FETCHED  = "bbc_ielts_fetched_v1";  // 抓取的最新文章
+const KEY_TODAY    = "bbc_ielts_today_v1";
+const KEY_FETCHED  = "bbc_ielts_fetched_v1";
+const KEY_VOICE    = "bbc_ielts_voice_v1";
+const KEY_RATE     = "bbc_ielts_rate_v1";
 
 function todayStr(){
   const d = new Date();
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
   return `${y}-${m}-${day}`;
 }
-function dateHash(s){
-  let h=0; for(const c of s) h = ((h<<5)-h + c.charCodeAt(0))|0;
-  return Math.abs(h);
-}
+function dateHash(s){ let h=0; for(const c of s) h = ((h<<5)-h + c.charCodeAt(0))|0; return Math.abs(h); }
 function toast(msg, ms=1800){
   const el = $("#toast"); el.textContent = msg; el.classList.add("show");
   clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove("show"), ms);
 }
 
-/* ---------------------- 雅思高频停用词 + 简单可猜词，避免挖空 ---------------------- */
 const STOP = new Set(("a an the and or but if then else when while because since although though as of in on at by to from for with without about into onto over under between among through during before after above below up down off out into out is are was were be been being am does do did doing has have had having will would shall should can could may might must this that these those there here it its their his her our your my we they he she you i not no nor so too very just only also own same such other another some any all each every most more less few many much one two three four five six seven eight nine ten which who whom whose what whatever whichever whoever how however where wherever why because but yet still already ever never always often sometimes usually rarely seldom hardly almost quite rather nearly across along around against beyond despite except inside outside near per plus throughout toward towards underneath unlike upon versus via within mr mrs ms dr say said says told tell get got make made take took give gave go went come came see saw use used find found think thought know knew want wanted need needed try tried leave left feel felt become became look looked seem seemed turn turned put set keep kept hold held bring brought begin began start started end ended call called help helped show showed mean meant ask asked work worked play played run ran move moved live lived believe believed").split(/\s+/));
 
-/* IELTS 风格关键词偏好：长一点、含元音组合、内容词；专有名词跳过（首字母大写） */
 function pickBlanks(words, forced=[]) {
   const candidates = [];
   for (let i=0;i<words.length;i++){
@@ -326,24 +635,20 @@ function pickBlanks(words, forced=[]) {
     const lower = raw.toLowerCase();
     if (STOP.has(lower)) continue;
     if (lower.length < 4) continue;
-    // 跳过专有名词（首字母大写且不在句首）
     const isCap = /^[A-Z]/.test(raw);
     const prevPunct = i===0 || /[.!?]"?$/.test(words[i-1]);
     if (isCap && !prevPunct) continue;
-    // 跳过句首大写词（除非是 forced）
     if (isCap && prevPunct && !forced.includes(lower)) continue;
     let score = lower.length;
-    if (/[aeiou].*[aeiou]/.test(lower)) score += 2; // 多音节
-    if (/(tion|ment|ity|ous|ive|able|ence|ance)$/.test(lower)) score += 4; // 学术后缀
+    if (/[aeiou].*[aeiou]/.test(lower)) score += 2;
+    if (/(tion|ment|ity|ous|ive|able|ence|ance)$/.test(lower)) score += 4;
     if (/(ing|ed|s)$/.test(lower)) score += 1;
     if (forced.includes(lower)) score += 100;
     candidates.push({i, raw, lower, score});
   }
-  // 强制词优先 + 高分词；并保证间隔
   candidates.sort((a,b)=>b.score-a.score);
   const targetCount = Math.min(20, Math.max(12, Math.round(words.length * 0.06)));
-  const picked = [];
-  const usedIdx = new Set();
+  const picked = []; const usedIdx = new Set();
   for (const c of candidates){
     if (picked.length >= targetCount) break;
     let tooClose = false;
@@ -356,19 +661,16 @@ function pickBlanks(words, forced=[]) {
 }
 
 /* ---------------------- 渲染 cloze ---------------------- */
-let CURRENT = null; // {passage, words, blanks, paraIdx}
+let CURRENT = null;
 function renderPassage(passage){
   const container = $("#passage");
   container.innerHTML = "";
 
-  // 把每段拆词并标注空位；空位的 (paraIdx, wordIdx) 用 data 属性
-  const allBlanks = []; // {key:"p-w", answer, blankNo}
   const paragraphs = passage.body.map((para, pIdx)=>{
     const tokens = para.match(/[A-Za-z][A-Za-z'-]*|\s+|[^\sA-Za-z'-]+/g) || [];
     return { pIdx, tokens };
   });
-  // 我们把"词"提取出来用于 pickBlanks，但要保留位置回填
-  const wordRefs = []; // {pIdx, tokenIdx, raw}
+  const wordRefs = [];
   paragraphs.forEach(P=>{
     P.tokens.forEach((t, tIdx)=>{
       if (/^[A-Za-z][A-Za-z'-]*$/.test(t)) wordRefs.push({pIdx:P.pIdx, tokenIdx:tIdx, raw:t});
@@ -376,57 +678,40 @@ function renderPassage(passage){
   });
   const words = wordRefs.map(w=>w.raw);
   const picked = pickBlanks(words, passage.forcedBlanks||[]);
-  const pickedSet = new Set(picked.map(p=>p.i));
+  const allBlanks = [];
   let blankNo = 0;
   picked.forEach(p=>{
     const ref = wordRefs[p.i];
-    allBlanks.push({
-      no: ++blankNo,
-      pIdx: ref.pIdx, tokenIdx: ref.tokenIdx,
-      answer: ref.raw,
-      lower: ref.raw.toLowerCase()
-    });
+    allBlanks.push({ no: ++blankNo, pIdx: ref.pIdx, tokenIdx: ref.tokenIdx, answer: ref.raw, lower: ref.raw.toLowerCase() });
   });
   const blankByPos = new Map(allBlanks.map(b => [b.pIdx+":"+b.tokenIdx, b]));
 
-  // 渲染
-  let wIndex = -1;
   paragraphs.forEach(P=>{
     const p = document.createElement("p");
     P.tokens.forEach((tok, tIdx)=>{
       if (/^[A-Za-z][A-Za-z'-]*$/.test(tok)){
-        wIndex++;
         const b = blankByPos.get(P.pIdx+":"+tIdx);
         if (b){
           const inp = document.createElement("input");
-          inp.type = "text";
-          inp.className = "blank";
+          inp.type = "text"; inp.className = "blank";
           inp.autocomplete = "off"; inp.spellcheck = false;
-          inp.dataset.no = b.no;
-          inp.dataset.answer = b.answer;
+          inp.dataset.no = b.no; inp.dataset.answer = b.answer;
           inp.size = Math.max(b.answer.length, 6);
           inp.placeholder = `(${b.no})`;
           p.appendChild(inp);
-        } else {
-          p.appendChild(document.createTextNode(tok));
-        }
-      } else {
-        p.appendChild(document.createTextNode(tok));
-      }
+        } else { p.appendChild(document.createTextNode(tok)); }
+      } else { p.appendChild(document.createTextNode(tok)); }
     });
     container.appendChild(p);
   });
 
   CURRENT = { passage, blanks: allBlanks };
 
-  // 从 localStorage 恢复填写状态
   const saved = LS.get(KEY_TODAY, null);
   if (saved && saved.passageId === passage.id && saved.dateStr === todayStr()){
     const inputs = $$(".blank");
     (saved.answers||[]).forEach((v,i)=>{ if (inputs[i]) inputs[i].value = v||""; });
-    if (saved.submitted){ // 自动重新批改一次以恢复显示
-      grade(/*restore*/true);
-    }
+    if (saved.submitted){ grade(true); }
   }
   saveToday();
 }
@@ -436,10 +721,8 @@ function saveToday(){
   const inputs = $$(".blank");
   const answers = inputs.map(i=>i.value);
   LS.set(KEY_TODAY, {
-    dateStr: todayStr(),
-    passageId: CURRENT.passage.id,
-    answers,
-    submitted: !!$("#resultCard") && !$("#resultCard").classList.contains("hidden")
+    dateStr: todayStr(), passageId: CURRENT.passage.id, answers,
+    submitted: !$("#resultCard").classList.contains("hidden")
   });
 }
 
@@ -454,20 +737,15 @@ function grade(restore){
     const got = normalize(inp.value);
     const exp = normalize(ans);
     inp.classList.remove("ok","bad");
-    // 移除旧的答案标签
     if (inp.nextSibling && inp.nextSibling.classList && inp.nextSibling.classList.contains("answer")){
       inp.nextSibling.remove();
     }
     if (got && got === exp){
-      correct++;
-      inp.classList.add("ok");
-      inp.disabled = true;
+      correct++; inp.classList.add("ok"); inp.disabled = true;
     } else {
-      inp.classList.add("bad");
-      inp.disabled = true;
+      inp.classList.add("bad"); inp.disabled = true;
       const tag = document.createElement("span");
-      tag.className = "answer";
-      tag.textContent = " "+ans;
+      tag.className = "answer"; tag.textContent = " "+ans;
       inp.after(tag);
     }
   });
@@ -485,21 +763,18 @@ function grade(restore){
   $("#resultCard").classList.remove("hidden");
 
   if (!restore){
-    // 写入错题本
     const mistakes = LS.get(KEY_MISTAKES, []);
     inputs.forEach((inp, idx)=>{
       if (inp.classList.contains("bad")){
         const b = CURRENT.blanks[idx];
-        const ctx = makeContext(CURRENT.passage, b);
         mistakes.push({
           date: todayStr(), passageId: CURRENT.passage.id, title: CURRENT.passage.title,
           answer: b.answer, got: inp.value || "(空)",
-          context: ctx
+          context: makeContext(CURRENT.passage, b)
         });
       }
     });
     LS.set(KEY_MISTAKES, mistakes);
-    // 历史记录
     const hist = LS.get(KEY_HISTORY, []);
     hist.unshift({
       date: todayStr(), passageId: CURRENT.passage.id, title: CURRENT.passage.title,
@@ -509,24 +784,15 @@ function grade(restore){
     refreshErrCount();
     saveToday();
     toast(`已批改：${correct}/${total} · ${score10.toFixed(1)}/10 · ${band}`);
-  } else {
-    refreshErrCount();
-  }
+  } else { refreshErrCount(); }
 }
 function mapBand(s){
-  if (s>=9.5) return "9.0";
-  if (s>=8.5) return "8.5";
-  if (s>=7.5) return "8.0";
-  if (s>=6.5) return "7.5";
-  if (s>=5.5) return "7.0";
-  if (s>=4.5) return "6.5";
-  if (s>=3.5) return "6.0";
-  if (s>=2.5) return "5.5";
-  if (s>=1.5) return "5.0";
+  if (s>=9.5) return "9.0"; if (s>=8.5) return "8.5"; if (s>=7.5) return "8.0";
+  if (s>=6.5) return "7.5"; if (s>=5.5) return "7.0"; if (s>=4.5) return "6.5";
+  if (s>=3.5) return "6.0"; if (s>=2.5) return "5.5"; if (s>=1.5) return "5.0";
   return "4.5";
 }
 function makeContext(passage, blank){
-  // 在原段落中标出错答位置周围 8 个词
   const para = passage.body[blank.pIdx];
   const tokens = para.match(/[A-Za-z][A-Za-z'-]*|\s+|[^\sA-Za-z'-]+/g) || [];
   const start = Math.max(0, blank.tokenIdx-12), end = Math.min(tokens.length, blank.tokenIdx+12);
@@ -537,18 +803,13 @@ function makeContext(passage, blank){
   }
   return (start>0?"… ":"") + out + (end<tokens.length?" …":"");
 }
-
-/* ---------------------- 揭示答案 ---------------------- */
 function reveal(){
   if (!CURRENT) return;
   $$(".blank").forEach((inp,idx)=>{
     inp.value = CURRENT.blanks[idx].answer;
-    inp.disabled = true;
-    inp.classList.remove("bad"); inp.classList.add("ok");
+    inp.disabled = true; inp.classList.remove("bad"); inp.classList.add("ok");
   });
 }
-
-/* ---------------------- 重置本篇 ---------------------- */
 function resetCurrent(){
   if (!CURRENT) return;
   $$(".blank").forEach(inp=>{ inp.value=""; inp.disabled=false; inp.classList.remove("ok","bad"); });
@@ -558,7 +819,7 @@ function resetCurrent(){
   toast("已清空本篇答案");
 }
 
-/* ---------------------- 选择今日文章 ---------------------- */
+/* ---------------------- 选今日文章 ---------------------- */
 function pickTodayPassage(){
   const fetched = LS.get(KEY_FETCHED, null);
   if (fetched && fetched.dateStr === todayStr()) return fetched.passage;
@@ -567,8 +828,7 @@ function pickTodayPassage(){
     const p = PASSAGES.find(p=>p.id===saved.passageId);
     if (p) return p;
   }
-  const idx = dateHash(todayStr()) % PASSAGES.length;
-  return PASSAGES[idx];
+  return PASSAGES[dateHash(todayStr()) % PASSAGES.length];
 }
 function loadPassage(passage){
   $("#title").textContent = passage.title;
@@ -579,44 +839,168 @@ function loadPassage(passage){
   stopSpeak();
 }
 
-/* ---------------------- 语音朗读 ---------------------- */
-let utter = null;
-function preferredVoice(){
-  const voices = speechSynthesis.getVoices();
-  // 英音优先
-  return voices.find(v=>/en-GB/i.test(v.lang) && /female/i.test(v.name))
-      || voices.find(v=>/en-GB/i.test(v.lang))
-      || voices.find(v=>/^en/i.test(v.lang))
-      || voices[0];
-}
-function speak(){
-  if (!CURRENT) return;
-  if (utter && speechSynthesis.paused){ speechSynthesis.resume(); return; }
-  stopSpeak();
-  const text = CURRENT.passage.body.join(" ");
-  utter = new SpeechSynthesisUtterance(text);
-  utter.voice = preferredVoice();
-  utter.rate = parseFloat($("#rate").value);
-  utter.pitch = 1;
-  utter.lang = "en-GB";
-  if ($("#autohide").checked){
-    $("#passage").style.filter = "blur(6px)";
-    $("#passage").style.userSelect = "none";
-  }
-  utter.onend = ()=>{
+/* ============================================================
+   语音模块（重写）
+   - 跨设备一致：默认偏好 Google UK English 系列
+   - 滑块改变语速：若正在读，从当前句重启
+   - 文本切句分块朗读，绕过 Chrome 卡死
+   ============================================================ */
+const Speech = {
+  voices: [],
+  chunks: [],
+  cursor: 0,        // 当前朗读到第几块
+  state: "idle",    // idle | playing | paused
+  rate: 0.95,
+  voice: null,
+  blurOn: false,
+
+  init(){
+    if (!("speechSynthesis" in window)){
+      $("#btnPlay").disabled = true;
+      $("#voiceSel").disabled = true;
+      toast("当前浏览器不支持朗读");
+      return;
+    }
+    const load = ()=>{
+      this.voices = speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+      this.populateVoiceList();
+    };
+    load();
+    speechSynthesis.onvoiceschanged = load;
+  },
+
+  populateVoiceList(){
+    const sel = $("#voiceSel");
+    if (!this.voices.length){
+      sel.innerHTML = `<option>加载中…</option>`;
+      return;
+    }
+    // 排序：Google 优先（跨设备一致），en-GB 优先，本地优先
+    const score = v => {
+      let s = 0;
+      if (/^Google/i.test(v.name)) s += 100;
+      if (/UK English|en-GB/i.test(v.lang) || /UK English/i.test(v.name)) s += 30;
+      if (/Female/i.test(v.name)) s += 5;
+      if (v.localService) s += 1;
+      return -s;
+    };
+    const sorted = this.voices.slice().sort((a,b)=>score(a)-score(b));
+    sel.innerHTML = sorted.map(v =>
+      `<option value="${v.voiceURI}">${v.name} · ${v.lang}${v.localService?"":" · 在线"}</option>`
+    ).join("");
+
+    const savedURI = LS.get(KEY_VOICE, null);
+    let chosen = savedURI && sorted.find(v=>v.voiceURI===savedURI);
+    if (!chosen) chosen = sorted[0];
+    sel.value = chosen.voiceURI;
+    this.voice = chosen;
+  },
+
+  setVoice(uri){
+    const v = this.voices.find(v=>v.voiceURI===uri);
+    if (v){
+      this.voice = v;
+      LS.set(KEY_VOICE, uri);
+      if (this.state === "playing") this.restartFromCurrent();
+    }
+  },
+
+  setRate(r){
+    this.rate = r;
+    LS.set(KEY_RATE, r);
+    if (this.state === "playing") this.restartFromCurrent();
+  },
+
+  prepareChunks(text){
+    // 按句号/问号/感叹号切分，每块不超过 ~180 字符
+    const sentences = text.match(/[^.!?]+[.!?]+["']?\s*/g) || [text];
+    const chunks = [];
+    let buf = "";
+    for (const s of sentences){
+      if ((buf + s).length > 180 && buf){ chunks.push(buf.trim()); buf = s; }
+      else buf += s;
+    }
+    if (buf.trim()) chunks.push(buf.trim());
+    return chunks;
+  },
+
+  play(){
+    if (!CURRENT) return;
+    if (this.state === "paused"){
+      speechSynthesis.resume();
+      this.state = "playing";
+      this.applyBlur();
+      return;
+    }
+    speechSynthesis.cancel();
+    this.chunks = this.prepareChunks(CURRENT.passage.body.join(" "));
+    this.cursor = 0;
+    this.state = "playing";
+    this.applyBlur();
+    this.speakNext();
+  },
+
+  speakNext(){
+    if (this.cursor >= this.chunks.length){ this.finish(); return; }
+    const u = new SpeechSynthesisUtterance(this.chunks[this.cursor]);
+    if (this.voice){ u.voice = this.voice; u.lang = this.voice.lang; }
+    u.rate = this.rate; u.pitch = 1; u.volume = 1;
+    u.onend = ()=>{
+      if (this.state !== "playing") return;
+      this.cursor++;
+      this.speakNext();
+    };
+    u.onerror = (e)=>{
+      // Safari 偶发 interrupted；忽略并继续
+      if (this.state === "playing"){ this.cursor++; this.speakNext(); }
+    };
+    speechSynthesis.speak(u);
+  },
+
+  pause(){
+    if (this.state === "playing"){
+      speechSynthesis.pause();
+      this.state = "paused";
+    }
+  },
+
+  stop(){
+    speechSynthesis.cancel();
+    this.state = "idle";
+    this.cursor = 0;
+    this.removeBlur();
+  },
+
+  restartFromCurrent(){
+    // 保留 cursor，但要先 cancel 当前 utterance；等 cancel 完成后再播
+    speechSynthesis.cancel();
+    setTimeout(()=>{
+      if (this.state === "playing") this.speakNext();
+    }, 80);
+  },
+
+  finish(){
+    this.state = "idle";
+    this.removeBlur();
+  },
+
+  applyBlur(){
+    if ($("#autohide").checked){
+      $("#passage").style.filter = "blur(6px)";
+      $("#passage").style.userSelect = "none";
+      this.blurOn = true;
+    }
+  },
+  removeBlur(){
     $("#passage").style.filter = "";
     $("#passage").style.userSelect = "";
-  };
-  speechSynthesis.speak(utter);
-}
-function pauseSpeak(){ if (speechSynthesis.speaking) speechSynthesis.pause(); }
-function stopSpeak(){
-  speechSynthesis.cancel();
-  $("#passage").style.filter = "";
-  $("#passage").style.userSelect = "";
-}
+    this.blurOn = false;
+  }
+};
 
-/* ---------------------- BBC 抓取（CORS 代理） ---------------------- */
+function stopSpeak(){ Speech.stop(); }
+
+/* ---------------------- BBC RSS 抓取 ---------------------- */
 async function fetchBBC(){
   const proxies = [
     u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
@@ -636,24 +1020,21 @@ async function fetchBBC(){
       if (para.length < 80) continue;
       const passage = {
         id: "bbc-live-"+Date.now(),
-        title: it.title,
-        source: "BBC News · 实时",
-        level: "原文难度（未分级）",
+        title: it.title, source: "BBC News · 实时", level: "原文难度（未分级）",
         body: para.split(/(?<=[.!?])\s+(?=[A-Z])/).reduce((acc,s)=>{
-          // 每两三句合一段
           if (!acc.length || acc[acc.length-1].length>240) acc.push(s);
           else acc[acc.length-1] += " "+s;
           return acc;
         }, [])
       };
       LS.set(KEY_FETCHED, {dateStr: todayStr(), passage});
-      LS.del(KEY_TODAY); // 清掉旧填写
+      LS.del(KEY_TODAY);
       loadPassage(passage);
       toast("已加载 BBC 最新内容");
       return;
-    }catch(e){ /* try next proxy */ }
+    }catch(e){}
   }
-  toast("抓取失败：所有代理均不可用，已回退到内置文章");
+  toast("抓取失败：所有代理均不可用，已回退内置文章");
 }
 function parseRSS(xml){
   try{
@@ -669,22 +1050,25 @@ function parseRSS(xml){
 /* ---------------------- 错题本 / 历史 ---------------------- */
 function refreshErrCount(){
   const n = (LS.get(KEY_MISTAKES, [])).length;
-  $("#errCount").textContent = n ? `(${n})` : "";
+  const el = $("#errBadge");
+  if (n){ el.classList.remove("hidden"); el.textContent = n; }
+  else el.classList.add("hidden");
 }
 function renderErrors(){
   const list = LS.get(KEY_MISTAKES, []);
   const el = $("#errList");
   $("#errMeta").textContent = list.length ? `共 ${list.length} 条` : "";
-  if (!list.length){ el.innerHTML = `<div class="empty">还没有错题。开始练习吧～</div>`; return; }
+  if (!list.length){ el.innerHTML = `<div class="empty">还没有错题。开始练习吧。</div>`; return; }
   el.innerHTML = list.slice().reverse().map(m=>`
-    <div class="errItem">
+    <div class="item">
       <div>
-        <div><b style="color:var(--good)">${escapeHtml(m.answer)}</b>
-          <span style="color:var(--ink-faint);margin:0 6px">←</span>
-          <s style="color:var(--bad)">${escapeHtml(m.got)}</s>
+        <div class="answer-line">
+          <b>${escapeHtml(m.answer)}</b>
+          <span style="color:var(--ink-4)">←</span>
+          <s>${escapeHtml(m.got)}</s>
         </div>
         <div class="ctx">${m.context}</div>
-        <div class="src" style="margin-top:4px">${escapeHtml(m.title)} · ${m.date}</div>
+        <div class="src">${escapeHtml(m.title)} · ${m.date}</div>
       </div>
     </div>
   `).join("");
@@ -694,14 +1078,14 @@ function renderHistory(){
   const el = $("#histList");
   if (!list.length){ el.innerHTML = `<div class="empty">还没有练习记录。</div>`; return; }
   el.innerHTML = list.map(h=>`
-    <div class="errItem">
+    <div class="item">
       <div>
-        <div><b>${escapeHtml(h.title)}</b></div>
+        <div style="font-weight:500">${escapeHtml(h.title)}</div>
         <div class="src" style="margin-top:4px">${h.date} · ${h.correct}/${h.total} 正确</div>
       </div>
-      <div style="text-align:right">
-        <div class="bigScore" style="font-size:22px">${h.score10.toFixed(1)}<span class="unit">/10</span></div>
-        <div class="band">≈ 雅思 ${h.band}</div>
+      <div class="right">
+        <div class="scoreNum">${h.score10.toFixed(1)}<span class="of">/ 10</span></div>
+        <div class="band" style="margin-top:4px">≈ 雅思 ${h.band}</div>
       </div>
     </div>
   `).join("");
@@ -712,7 +1096,7 @@ function escapeHtml(s){
 
 /* ---------------------- Tabs ---------------------- */
 function selectTab(name){
-  $$(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===name));
+  $$(".seg button").forEach(t=>t.classList.toggle("active", t.dataset.tab===name));
   $("#tabToday").classList.toggle("hidden", name!=="today");
   $("#tabErrs").classList.toggle("hidden", name!=="errs");
   $("#tabHist").classList.toggle("hidden", name!=="hist");
@@ -720,28 +1104,35 @@ function selectTab(name){
   if (name==="hist") renderHistory();
 }
 
-/* ---------------------- 事件绑定 ---------------------- */
+/* ---------------------- 入口 ---------------------- */
 window.addEventListener("DOMContentLoaded", ()=>{
-  // tabs
-  $$(".tab").forEach(t=>t.addEventListener("click", ()=>selectTab(t.dataset.tab)));
+  $$(".seg button").forEach(t=>t.addEventListener("click", ()=>selectTab(t.dataset.tab)));
 
-  // 加载今日
   loadPassage(pickTodayPassage());
   refreshErrCount();
+  Speech.init();
 
-  // 输入自动保存
+  // 恢复保存的语速
+  const savedRate = LS.get(KEY_RATE, null);
+  if (savedRate){ $("#rate").value = savedRate; Speech.rate = +savedRate; }
+  $("#rateVal").textContent = (+$("#rate").value).toFixed(2)+"×";
+
   document.addEventListener("input", e=>{ if (e.target.classList?.contains("blank")) saveToday(); });
 
-  // 按钮
-  $("#btnPlay").addEventListener("click", speak);
-  $("#btnPause").addEventListener("click", pauseSpeak);
-  $("#btnStop").addEventListener("click", stopSpeak);
-  $("#rate").addEventListener("input", ()=>{ $("#rateVal").textContent = (+$("#rate").value).toFixed(2)+"×"; });
+  $("#btnPlay").addEventListener("click", ()=>Speech.play());
+  $("#btnPause").addEventListener("click", ()=>Speech.pause());
+  $("#btnStop").addEventListener("click", ()=>Speech.stop());
+  $("#rate").addEventListener("input", ()=>{
+    const v = +$("#rate").value;
+    $("#rateVal").textContent = v.toFixed(2)+"×";
+    Speech.setRate(v);
+  });
+  $("#voiceSel").addEventListener("change", e=> Speech.setVoice(e.target.value));
+
   $("#btnSubmit").addEventListener("click", ()=>grade(false));
   $("#btnReveal").addEventListener("click", reveal);
   $("#btnReset").addEventListener("click", resetCurrent);
   $("#btnNext").addEventListener("click", ()=>{
-    // 在内置库里换下一篇（不影响"今日"自动选择，仅本次）
     const cur = CURRENT?.passage?.id;
     let idx = PASSAGES.findIndex(p=>p.id===cur);
     if (idx<0) idx = -1;
@@ -751,11 +1142,10 @@ window.addEventListener("DOMContentLoaded", ()=>{
     toast("已切换到下一篇");
   });
   $("#btnFetch").addEventListener("click", async ()=>{
-    $("#btnFetch").disabled = true;
-    $("#btnFetch").textContent = "抓取中…";
+    const b = $("#btnFetch");
+    b.disabled = true; b.textContent = "抓取中…";
     await fetchBBC();
-    $("#btnFetch").disabled = false;
-    $("#btnFetch").textContent = "🌐 抓取 BBC 最新";
+    b.disabled = false; b.textContent = "抓取 BBC 最新";
   });
   $("#btnResetErrs").addEventListener("click", ()=>{
     if (!confirm("确定清空错题本？此操作不可恢复。")) return;
@@ -778,11 +1168,6 @@ window.addEventListener("DOMContentLoaded", ()=>{
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob); a.download = `mistakes-${todayStr()}.csv`; a.click();
   });
-
-  // Speech voices may load async
-  if (typeof speechSynthesis !== "undefined"){
-    speechSynthesis.onvoiceschanged = ()=>{};
-  }
 });
 </script>
 </body>
